@@ -1,0 +1,44 @@
+{
+  "_id": "691da8feb00505c1c11b08b9",
+  "index": 0,
+  "guid": "9150daa4-b7c4-4230-a3b8-ddd2eb05731f",
+  "isActive": true,
+  "balance": "$3,816.81",
+  "picture": "http://placehold.it/32x32",
+  "age": 39,
+  "eyeColor": "blue",
+  "name": "Vickie Snow",
+  "gender": "female",
+  "company": "DATACATOR",
+  "email": "vickiesnow@datacator.com",
+  "phone": "+1 (925) 537-2747",
+  "address": "843 Interborough Parkway, Floris, Washington, 5608",
+  "registered": "2018-11-01T06:02:48 -05:00",
+  "latitude": -42.568798,
+  "longitude": -77.971543,
+  "tags": [
+    "fugiat",
+    "reprehenderit",
+    "culpa",
+    "veniam",
+    "enim",
+    "occaecat",
+    "et"
+  ],
+  "friends": [
+    {
+      "id": 0,
+      "name": "Silvia Ferrell"
+    },
+    {
+      "id": 1,
+      "name": "Kirkland Benson"
+    },
+    {
+      "id": 2,
+      "name": "Howe Hester"
+    }
+  ],
+  "greeting": "Hello, Vickie Snow! You have 10 unread messages.",
+  "favoriteFruit": "strawberry"
+}

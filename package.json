@@ -1,0 +1,107 @@
+{
+  "name": "@junaidatari/json2ts",
+  "version": "0.0.1",
+  "private": false,
+  "publishConfig": {
+    "tag": "latest",
+    "access": "public"
+  },
+  "description": "Convert JSON objects to TypeScript interfaces automatically.",
+  "homepage": "https://github.com/blacksmoke26/json2ts#readme",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "types",
+  "keywords": [
+    "json",
+    "typescript",
+    "interface",
+    "flattened-interface",
+    "mega-interface",
+    "json-to-ts",
+    "json-to-typescript",
+    "typescript-interfaces",
+    "typescript-cli",
+    "cli",
+    "typescript-tool",
+    "typescript-utility",
+    "json-converter",
+    "json-to-ts-interface",
+    "typescript-types",
+    "json-parser",
+    "code-generation",
+    "type-generation",
+    "json-schema",
+    "typescript-generator",
+    "auto-types",
+    "type-converter",
+    "json2ts",
+    "jsontots",
+    "ts-generator",
+    "json-type",
+    "interface-generator",
+    "type-definition",
+    "json-transform",
+    "ts-codegen",
+    "json-type-generator",
+    "typescript-builder",
+    "json-interface",
+    "type-builder",
+    "json-to-type",
+    "ts-interface",
+    "typescript-boilerplate",
+    "type-helpers",
+    "json-utilities",
+    "dev-tools",
+    "automation",
+    "codegen"
+  ],
+  "files": [
+    "*.js",
+    "lib/**/*.js",
+    "types/**/*.ts",
+    "bin/json2ts.js",
+    "bin/json2ts.cmd",
+    "*.md"
+  ],
+  "bin": {
+    "json2ts": "./bin/json2ts.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blacksmoke26/json2ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/blacksmoke26/json2ts/issues"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rimraf lib && rimraf types",
+    "build": "npm run clean && tsc && tsc-alias",
+    "prepack": "crlf --set=LF bin/json2ts.js",
+    "dev": "ts-node ./samples/json-to-interface.ts",
+    "dev:flat": "ts-node ./samples/json-to-flat-interface.ts"
+  },
+  "engines": {
+    "node": ">= 20"
+  },
+  "engine-strict": true,
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "author": "Junaid Atari (https://github.com/blacksmoke26)",
+  "license": "ISC",
+  "dependencies": {
+    "crlf": "^1.1.1",
+    "rimraf": "^6.1.0",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
+  }
+}
