@@ -17,6 +17,7 @@ const { JsonToTsConverter, JsonToFlattenedTsConverter } = require('../index.js')
 
 /**
  * Command line arguments configuration using yargs
+ * @type {import('yargs').Argv}
  */
  const argv = yargs(hideBin(process.argv))
    .parserConfiguration({
@@ -44,6 +45,12 @@ const { JsonToTsConverter, JsonToFlattenedTsConverter } = require('../index.js')
      type: 'string',
      alias: 'n',
    })
+  .option('export', {
+    description: 'Export type for generated interfaces: "all" (default), "root", or "none"',
+    type: 'string',
+    choices: ['a', 'r', 'n'],
+    alias: 'e',
+  })
    .option('flat', {
      description: 'Generate a single flattened interface instead of nested interfaces',
      type: 'boolean',
@@ -51,13 +58,20 @@ const { JsonToTsConverter, JsonToFlattenedTsConverter } = require('../index.js')
    })
    .default({
      flat: false,
+     file: null,
+     text: null,
      name: 'RootObject',
+     export: 'r',
+     output: null,
    })
    .showHelpOnFail(true, 'Use --help for usage')
-   .showHelp(printHeader)
    .help()
    .parse();
 
+/**
+ * Prints the ASCII art header to the console
+ * @param {...any} l - Additional lines to print after the header
+ */
 function printHeader (...l) {
   console.log(`       █████                              ████████  ███████████
       ░░███                              ███░░░░███░█░░░███░░░█
@@ -72,24 +86,42 @@ function printHeader (...l) {
 }
 
 /**
+ * Converts export type character to full string representation
+ * @param {string} type - The export type character ('a', 'r', or 'n')
+ * @returns {'all' | 'root' | 'none'} The full export type string
+ */
+function toExportType (type) {
+  switch (type) {
+    case 'a':
+      return 'all';
+    case 'r':
+      return 'root';
+    default:
+      return 'none';
+  }
+}
+
+/**
  * Main execution function
+ * Handles command-line arguments, processes JSON input, and generates TypeScript interfaces
  */
 (async function() {
-  if (!argv._.length) return;
-
   printHeader();
 
+  if (!argv['file'] && !argv['text']) {
+    console.error('Missing required arguments. Use --help for usage information.');
+    process.exit(1);
+  }
+
   const dir = path.resolve(process.cwd());
-  const outputFile = argv.output || path.join(dir, 'output.ts');
   const flat = argv.flat;
 
   let jsonData;
   try {
     if (argv.file) {
-      const content = fs.readFileSync(argv.file, { encoding: 'utf-8' });
-      jsonData = JSON.parse(content);
+      jsonData = fs.readFileSync(argv.file, { encoding: 'utf-8' });
     } else {
-      jsonData = JSON.parse(argv.text);
+      jsonData = argv.text;
     }
   } catch (error) {
     console.error('Error parsing JSON:', error.message);
@@ -98,14 +130,20 @@ function printHeader (...l) {
   }
 
   const converter = flat ? JsonToFlattenedTsConverter : JsonToTsConverter;
-  const typescriptCode = 'export ' + converter.convert(jsonData, argv.name || 'RootObject') + `\n`;
+  const typescriptCode = converter.convert(jsonData, argv.name || 'RootObject', toExportType(argv['export'])) + `\n`;
 
-  try {
-    fs.writeFileSync(outputFile, typescriptCode);
-    console.log(`Successfully wrote TypeScript definitions to: ${outputFile}`);
-  } catch (error) {
-    console.error('Error writing output file:', error.message);
-    process.exitCode = 1;
+  if (argv['output']) {
+    const outputFile = argv.output || path.join(dir, 'output.ts');
+
+    try {
+      fs.writeFileSync(outputFile, typescriptCode);
+      console.log(`Successfully wrote TypeScript definitions to: ${outputFile}`);
+    } catch (error) {
+      console.error('Error writing output file:', error.message);
+      process.exitCode = 1;
+    }
+  } else {
+    console.log(typescriptCode);
   }
 })().catch((err) => {
   console.error(err.stack || err.message || err);
