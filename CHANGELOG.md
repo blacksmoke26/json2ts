@@ -1,5 +1,11 @@
 # Changelog
 
+## V0.0.2 - 2025-11-22
+
+- Added export type support for generated interfaces
+- New `--export` option to control interface exports ('all', 'root', or 'none')
+- Updated CLI and programmatic API to support flexible export configurations
+
 ## v0.0.1 - 2025-11-19
 
 ### Initial Release
