@@ -1,5 +1,13 @@
 # Changelog
 
+## V0.0.3 - 2025-11-22
+
+- Added `stdbin` cli support:
+```bash
+# Convert API response directly to TypeScript types
+curl -s https://jsonplaceholder.typicode.com/posts/1 | json2ts -n UserResponse -o user-types.ts
+```
+
 ## V0.0.2 - 2025-11-22
 
 - Added export type support for generated interfaces
