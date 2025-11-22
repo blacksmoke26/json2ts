@@ -17,6 +17,7 @@ from JSON objects, making type-safe development easier and more efficient.
 - 🚀 Fast and lightweight CLI for quick conversions
 - 📝 Support for both file and direct text input
 - 🔢 Intelligent type inference for numbers, strings, booleans, and null values
+- 🔌 Read JSON directly from stdin for pipeline operations
 
 ## CLI Usage 💻
 
@@ -49,7 +50,7 @@ yarn global add @junaidatari/json2ts  # for Yarn
 json2ts -f input.json -o types.ts -n ApiResponse
 ```
 
-#### Direct text conversion
+#### Direct text conversion and print to console
 
 ```bash
 # Linux/Mac
@@ -81,7 +82,97 @@ json2ts -f input.json -o types.ts -n ApiResponse --export none
 
 ```bash
 # Convert API response directly to TypeScript types
-curl -s https://api.example.com/users | json2ts -t - -n UserResponse -o user-types.ts
+curl -s https://jsonplaceholder.typicode.com/posts/1 | json2ts -n UserResponse -o user-types.ts
+```
+
+#### Pipeline with other commands
+
+```bash
+# Convert from clipboard (using xclip on Linux)
+xclip -selection clipboard -o | json2ts -n ClipboardData
+
+# Convert from file and pipe to another command
+json2ts -f data.json | tee types.ts | pbcopy
+
+# Chain multiple conversions
+curl -s https://api.example.com/data | json2ts -n ApiResponse | npx prettier --parser typescript
+```
+
+#### Using with package managers
+
+```bash
+# Convert package.json to TypeScript interface
+cat package.json | json2ts -n PackageConfig -o package-types.ts
+
+# Convert npm shrinkwrap file
+json2ts -f npm-shrinkwrap.json -n ShrinkwrapData -o shrinkwrap-types.ts --flat
+```
+
+#### Processing configuration files
+
+```bash
+# Convert TypeScript config
+json2ts -f tsconfig.json -n TsConfig -o tsconfig-types.ts
+
+# Convert ESLint config
+cat .eslintrc.json | json2ts -n EsLintConfig -o eslint-types.ts
+```
+
+#### Working with databases
+
+```bash
+# Convert MongoDB export to TypeScript
+mongoexport --collection users --out users.json
+json2ts -f users.json -n UserDocument -o user-types.ts --export all
+
+# Convert from database query result
+psql -c "SELECT row_to_json(t) FROM (SELECT * FROM users LIMIT 1) t" | json2ts -n DBUser -o db-types.ts
+```
+
+#### Interactive usage
+
+```bash
+# Interactive JSON input with multiple lines
+echo '{
+  "name": "test",
+  "data": {
+    "items": [1, 2, 3]
+  }
+}' | json2ts -n TestData
+
+# Using heredoc for complex JSON
+json2ts -n ComplexConfig -o config-types.ts << EOF
+{
+  "server": {
+    "port": 3000,
+    "host": "localhost"
+  },
+  "database": {
+    "url": "mongodb://localhost:27017",
+    "options": {
+      "useNewUrlParser": true
+    }
+  }
+}
+EOF
+```
+
+#### Development workflows
+
+```bash
+# Generate types from API schema in CI/CD
+curl -s "$API_SCHEMA_URL" | json2ts -n ApiSchema -o src/types/api.ts
+
+# Watch for changes and regenerate types
+while inotifywait -e modify data/; do
+  for file in data/*.json; do
+    basename=$(basename "$file" .json)
+    json2ts -f "$file" -o "types/${basename}.ts" -n "${basename^}Type"
+  done
+done
+
+# Generate types for all JSON files in a directory
+find src/data -name "*.json" -exec sh -c 'json2ts -f "$0" -o "src/types/$(basename "$0" .json).ts" -n "$(basename "$0" .json | sed "s/\b\w/\U/g/g")"' {} \;
 ```
 
 #### Processing multiple files with a script
