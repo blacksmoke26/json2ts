@@ -1,4 +1,18 @@
 /**
+ * @author Junaid Atari <mj.atari@gmail.com>
+ * @copyright 2025 Junaid Atari
+ * @see https://github.com/blacksmoke26
+ */
+
+/**
+ * Represents the export strategy for generated TypeScript interfaces.
+ * - 'all': Export all generated interfaces
+ * - 'root': Export only the root interface
+ * - 'none': No exports (interface definitions only)
+ */
+export type ExportType = 'all' | 'root' | 'none';
+
+/**
  * Abstract base class for JSON to TypeScript interface converters.
  * Provides common functionality for parsing JSON and converting it to TypeScript interfaces.
  */
@@ -9,13 +23,18 @@ export default abstract class ConverterBase {
    * creating an instance of the converter and delegating the actual conversion work.
    *
    * @param jsonData The JSON object to convert. Must be a valid object structure.
+   *                 Can be a JSON string or a parsed object.
    * @param interfaceName The name for the generated interface (e.g., 'User', 'ApiResponse').
-   *                     Defaults to 'RootObject' if not specified.
+   *                      Defaults to 'RootObject' if not specified.
+   * @param exportType Determines the export strategy for the generated interfaces.
+   *                   'all' exports all interfaces, 'root' exports only the root interface,
+   *                   'none' generates no exports. Defaults to 'all'.
    * @returns A formatted string containing the complete TypeScript interface definition.
    *          The interface will include all nested objects flattened into the main definition.
+   *          Returns null if the input cannot be parsed or converted.
    * @throws {Error} If the input is not a valid JSON object (null, primitive, or undefined).
    */
-  public static convert(jsonData: string | unknown, interfaceName?: string): string | null {
+  public static convert(jsonData: string | unknown, interfaceName?: string, exportType?: ExportType): string | null {
     throw new Error('No implemented yet');
   }
 
@@ -47,19 +66,21 @@ export default abstract class ConverterBase {
    * Creates an instance of ConverterBase.
    * The constructor is protected to enforce the use of the static factory method `convert`.
    */
-  protected constructor() {
-  }
+  protected constructor() {}
 
   /**
-    * The main internal method that orchestrates the conversion process.
-    *
-    * This method validates the input, initializes the conversion state, triggers the
-    * interface generation, and assembles the final output in the correct order.
-    *
-    * @param jsonData - The JSON object to convert. Must be a valid object, not null or primitive.
-    * @param rootInterfaceName - The name to use for the root interface (e.g., 'User', 'ApiResponse').
-    * @returns A formatted string containing all generated TypeScript interfaces.
-    * @throws {Error} If the input is not a valid JSON object.
-    */
-  protected abstract convertJson(jsonData: unknown, rootInterfaceName: string): string;
+   * Converts a JSON object into TypeScript interface definitions.
+   *
+   * This abstract method must be implemented by concrete converter classes to define
+   * the specific conversion logic. It handles the core transformation of JSON structures
+   * into TypeScript interface strings.
+   *
+   * @param jsonData - The JSON object to convert. Must be a valid object, not null or primitive.
+   * @param rootInterfaceName - The name to use for the root interface (e.g., 'User', 'ApiResponse').
+   * @param exportType - Optional export strategy for the generated interfaces.
+   *                     Controls which interfaces are exported in the output.
+   * @returns A formatted string containing the generated TypeScript interface definitions.
+   * @throws {Error} If the input is not a valid JSON object or conversion fails.
+   */
+  protected abstract convertJson(jsonData: unknown, rootInterfaceName: string, exportType?: ExportType): string;
 }

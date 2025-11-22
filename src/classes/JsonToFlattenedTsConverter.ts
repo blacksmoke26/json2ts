@@ -4,13 +4,22 @@
  * @see https://github.com/blacksmoke26
  */
 
-import ConverterBase from '~/base/ConverterBase';
+import ConverterBase, { ExportType } from '~/base/ConverterBase';
 
 /**
- * A utility class to convert a JSON object into a single, flattened TypeScript interface.
- * Nested objects are inlined into the main interface definition.
+ * A utility class that converts JSON objects into flattened TypeScript interfaces.
+ * This converter inlines all nested object properties into a single interface definition,
+ * avoiding the need for separate interface definitions for nested structures.
+ *
+ * Key features:
+ * - Converts JSON objects to TypeScript interfaces
+ * - Inlines nested objects into the main interface
+ * - Handles arrays and primitive types appropriately
+ * - Prevents infinite recursion with circular reference detection
+ * - Supports custom interface names and export types
  *
  * @example
+ * Input JSON:
  * ```json
  * {
  *   "user": {
@@ -23,7 +32,7 @@ import ConverterBase from '~/base/ConverterBase';
  * }
  * ```
  *
- * Would be converted to:
+ * Generated TypeScript interface:
  * ```typescript
  * export interface RootObject {
  *   user: {
@@ -39,15 +48,20 @@ import ConverterBase from '~/base/ConverterBase';
  */
 export default class JsonToFlattenedTsConverter extends ConverterBase {
   /**
-   * A WeakSet used to keep track of objects that have been visited during the conversion process.
-   * This helps prevent infinite recursion when dealing with circular references in the input JSON.
+   * Tracks visited objects during conversion to prevent infinite recursion
+   * when circular references are encountered in the input JSON.
+   * Uses WeakSet to avoid memory leaks for objects that are no longer referenced.
    */
   private visitedObjects = new WeakSet<object>();
 
   /**
-   * Converts a JSON object into a flattened TypeScript interface.
+   * Converts a JSON object or string into a flattened TypeScript interface.
    *
-   * @inheritDoc
+   * @param jsonData - The JSON data to convert. Can be an object or a JSON string.
+   * @param interfaceName - Name for the generated interface. Defaults to 'RootObject'.
+   * @param exportType - Type of export ('root' or 'interface'). Defaults to 'root'.
+   * @returns The generated TypeScript interface as a string, or null if input is invalid.
+   *
    * @example
    * ```typescript
    * const jsonData = {
@@ -69,20 +83,27 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
    * // }
    * ```
    */
-  public static convert(jsonData: unknown | string, interfaceName: string = 'RootObject'): string | null {
+  public static convert(jsonData: unknown | string, interfaceName: string = 'RootObject', exportType: ExportType = 'root'): string | null {
     const parsed = this.parseJson(jsonData);
 
     return !parsed
       ? null
-      : new JsonToFlattenedTsConverter().convertJson(parsed, interfaceName);
+      : new JsonToFlattenedTsConverter().convertJson(parsed, interfaceName, exportType);
   }
 
   /**
-   * @inheritDoc
+   * Generates the TypeScript interface code from parsed JSON data.
+   *
+   * @param jsonData - The parsed JSON object to convert.
+   * @param interfaceName - Name for the generated interface.
+   * @param exportType - Type of export ('root' or 'interface').
+   * @returns The complete TypeScript interface code.
    */
-  protected convertJson(jsonData: unknown, interfaceName: string): string {
+  protected convertJson(jsonData: unknown, interfaceName: string, exportType: ExportType = 'root'): string {
+    const exports = exportType !== 'none' ? 'exports ' : '';
+
     if (typeof jsonData !== 'object' || jsonData === null) {
-      return `interface ${interfaceName} {}`;
+      return exports + `interface ${interfaceName} {}`;
     }
 
     // Reset the visited set for each conversion run
@@ -90,15 +111,16 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
 
     const interfaceBody = this.generateObjectBody(jsonData, 0).trim();
 
-    return `interface ${interfaceName} ${interfaceBody}`.replace(/\[]$/, '');
+    return exports + `interface ${interfaceName} ${interfaceBody}`.replace(/\[]$/, '');
   }
 
   /**
-   * Recursively generates the body of an interface by inlining nested objects.
+   * Recursively generates TypeScript type definitions for objects and their properties.
+   * Inlines nested objects into the current interface definition.
    *
-   * @param obj The object or value to analyze.
-   * @param indentLevel The current indentation level for formatting.
-   * @returns A string representing the type definition for the given value.
+   * @param obj - The object or value to convert to a TypeScript type.
+   * @param indentLevel - Current indentation level for formatting the output.
+   * @returns A string containing the TypeScript type definition.
    */
   private generateObjectBody(obj: any, indentLevel: number): string {
     const indent = this.getIndent(indentLevel);
@@ -112,7 +134,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     // Handle arrays
     if (Array.isArray(obj)) {
       if (obj.length === 0) {
-        return '{}'; // Or a more specific empty array type if desired
+        return '{}'; // Empty array type
       }
       // Use the first element's type as the representative for the whole array
       const elementType = this.getType(obj[0], indentLevel);
@@ -125,12 +147,12 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     }
 
     // --- Handle Objects ---
-    // Safeguard against circular references.
+    // Check for circular references
     if (this.visitedObjects.has(obj)) {
-      return 'any'; // If we've seen this object before, we can't represent it, so we use 'any'.
+      return 'any'; // Fallback for circular references
     }
 
-    // Mark the current object as visited for the duration of its processing
+    // Mark object as visited to detect cycles
     this.visitedObjects.add(obj);
 
     let body = '';
@@ -142,11 +164,10 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
       body += `${nextIndent}${key}: ${type};\n`;
     }
 
-    // We are done processing this object, so we can remove it from the set.
-    // This allows the same object structure to be analyzed in a different, non-circular path.
+    // Remove object from visited set after processing
     this.visitedObjects.delete(obj);
 
-    // If the object was empty, it's an empty object type
+    // Handle empty objects
     if (keys.length === 0) {
       return '{}';
     }
@@ -156,26 +177,28 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
   }
 
   /**
-   * Determines the TypeScript type of a given value, delegating to `generateObjectBody` for complex types.
+   * Determines the appropriate TypeScript type for a given value.
+   * Delegates to generateObjectBody for complex types (objects and arrays).
    *
-   * @param value The value to analyze.
-   * @param indentLevel The current indentation level for formatting.
-   * @returns A string representing the TypeScript type.
+   * @param value - The value to analyze for type determination.
+   * @param indentLevel - Current indentation level for formatting.
+   * @returns The TypeScript type string for the given value.
    */
   private getType(value: any, indentLevel: number): string {
     if (value === null || typeof value !== 'object') {
-      // Primitives and null are handled directly here to avoid extra recursion for simple cases.
+      // Direct handling for primitives and null
       return this.generateObjectBody(value, indentLevel);
     }
-    // For objects and arrays, delegate to the main recursive logic.
+    // Delegate to main recursive logic for objects and arrays
     return this.generateObjectBody(value, indentLevel);
   }
 
   /**
-   * Generates an indentation string based on the level.
+   * Creates an indentation string based on the specified level.
+   * Uses two spaces per indentation level for consistent formatting.
    *
-   * @param level The number of indentation levels.
-   * @returns A string of spaces.
+   * @param level - The number of indentation levels.
+   * @returns A string containing the appropriate number of spaces.
    */
   private getIndent(level: number): string {
     return '  '.repeat(level);

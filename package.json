@@ -1,6 +1,6 @@
 {
   "name": "@junaidatari/json2ts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "publishConfig": {
     "tag": "latest",
@@ -94,11 +94,12 @@
   "license": "ISC",
   "dependencies": {
     "crlf": "^1.1.1",
-    "rimraf": "^6.1.0",
+    "rimraf": "^6.1.2",
     "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/yargs": "^17.0.35",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",

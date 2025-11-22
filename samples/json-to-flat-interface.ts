@@ -22,7 +22,7 @@ import { JsonToFlattenedTsConverter } from '../src/index';
 async function run(): Promise<void> {
   const json = fs.readFileSync(__dirname + '/jsons/sample.json', { encoding: 'utf-8' });
 
-  const output = JsonToFlattenedTsConverter.convert(json, 'Person');
+  const output = JsonToFlattenedTsConverter.convert(json, 'Person', 'all');
 
   console.log(output);
 }

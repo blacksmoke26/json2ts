@@ -22,7 +22,7 @@ import { JsonToTsConverter } from '../src/index';
 async function run(): Promise<void> {
   const json = fs.readFileSync(__dirname + '/jsons/sample2.json', { encoding: 'utf-8' });
 
-  const output = JsonToTsConverter.convert(json, 'Person');
+  const output = JsonToTsConverter.convert(json, 'Person', 'all');
 
   console.log(output);
 }

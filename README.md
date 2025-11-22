@@ -12,6 +12,11 @@ from JSON objects, making type-safe development easier and more efficient.
 - 🔄 Transform nested/complex JSON into flattened interface
 - ❓ Support for optional properties and nullable types
 - 🗂️ Preserve original JSON structure in generated interfaces
+- 🌐 Export options for generated interfaces (all, root, none)
+- 📊 Handle complex nested structures with arrays of objects
+- 🚀 Fast and lightweight CLI for quick conversions
+- 📝 Support for both file and direct text input
+- 🔢 Intelligent type inference for numbers, strings, booleans, and null values
 
 ## CLI Usage 💻
 
@@ -27,13 +32,14 @@ yarn global add @junaidatari/json2ts  # for Yarn
 
 ### Command Options ⚙️
 
-| Option   | Alias | Type     | Description                                                               | Default        |
-|----------|-------|----------|---------------------------------------------------------------------------|----------------|
-| `--file` | `-f`  | `string` | Path to the JSON file to be converted to TypeScript interfaces            | Required (unless `--text` is used) |
-| `--text` | `-t`  | `string` | Raw JSON string to be converted to TypeScript interfaces                 | Required (unless `--file` is used) |
-| `--output`| `-o`  | `string` | Path where the generated TypeScript interface file will be saved          | `./output.ts`  |
-| `--name` | `-n`  | `string` | Name for the root TypeScript interface                                    | `RootObject`   |
-| `--flat` | `-l`  | `boolean` | Generate a single flattened interface instead of nested interfaces        | `false`        |
+| Option         | Type     | Description                                                               | Default        |
+|----------------|----------|---------------------------------------------------------------------------|----------------|
+| `-f, --file`   | `string` | Path to the JSON file to be converted to TypeScript interfaces            | Required (unless `--text` is used) |
+| `-t, --text`   | `string` | Raw JSON string to be converted to TypeScript interfaces                 | Required (unless `--file` is used) |
+| `-o, --output` | `string` | Path where the generated TypeScript interface file will be saved          | Prints to console if not specified |
+| `-n, --name`   | `string` | Name for the root TypeScript interface                                    | `RootObject`   |
+| `-l, --flat`   | `boolean`| Generate a single flattened interface instead of nested interfaces        | `false`        |
+| `-e, --export` | `string` | Export type: `a`=all, `r`=root, or `n`=none                        | `r` (root only) |
 
 ### Examples 📝
 
@@ -58,6 +64,41 @@ json2ts -t "{\"user\": {\"name\": \"John Doe\"}}" -n User
 ```bash
 json2ts -f complex.json -o flat-types.ts -n ComplexData --flat
 ```
+
+#### Export all interfaces
+
+```bash
+json2ts -f input.json -o types.ts -n ApiResponse --export all
+```
+
+#### No exports (all interfaces internal)
+
+```bash
+json2ts -f input.json -o types.ts -n ApiResponse --export none
+```
+
+#### Pipeline with curl (fetch JSON from API)
+
+```bash
+# Convert API response directly to TypeScript types
+curl -s https://api.example.com/users | json2ts -t - -n UserResponse -o user-types.ts
+```
+
+#### Processing multiple files with a script
+
+```bash
+# Create a script to process multiple JSON files
+for file in data/*.json; do
+  basename=$(basename "$file" .json)
+  json2ts -f "$file" -o "types/${basename}.ts" -n "${basename^}Data"
+done
+```
+
+### Advanced Usage Tips 💡
+
+- **Input from stdin**: Use `-` as the file path to read from standard input
+- **Version information**: Use `--version` to check the current version
+- **Detailed help**: Use `--help` to see all available options with descriptions
 
 ### Help ❓
 
@@ -142,8 +183,8 @@ const jsonText = `{
 }
 `;
 
-// Convert to multiple interfaces
-const interfaces = JsonToTsConverter.convert(json, 'Person');
+// Convert to multiple interfaces with all exports
+const interfaces = JsonToTsConverter.convert(json, 'Person', 'all');
 console.log('Generated interfaces:');
 console.log(interfaces);
 /* Output:
@@ -152,23 +193,23 @@ export interface Address {
   city: string;
 }
 
-interface User {
+export interface User {
   name: string;
   age: number;
   address: Address;
 }
 
-interface Person {
+export interface Person {
   user: User;
 }
 */
 
 // Convert to flattened interface
-const interfaceFlat = JsonToFlattenedTsConverter.convert(jsonText, 'PersonFlat');
+const interfaceFlat = JsonToFlattenedTsConverter.convert(jsonText, 'PersonFlat', 'all');
 console.log('\nGenerated flattened interface:');
 console.log(interfaceFlat);
 /* Output:
-export interface Person {
+export interface PersonFlat {
   _id: string;
   index: number;
   guid: string;
@@ -195,22 +236,144 @@ export interface Person {
   favoriteFruit: string;
 }
 */
+
+// Example with complex nested structure
+const complexJson = {
+  data: {
+    users: [
+      {
+        id: 1,
+        profile: {
+          name: 'Alice',
+          preferences: {
+            theme: 'dark',
+            notifications: {
+              email: true,
+              push: false
+            }
+          }
+        }
+      }
+    ],
+    metadata: {
+      total: 1,
+      page: 1
+    }
+  }
+};
+
+const complexTypes = JsonToTsConverter.convert(complexJson, 'ApiResponse', 'root');
+console.log(complexTypes);
+/* Output:
+export interface ApiResponse {
+  data: Data;
+}
+
+interface Data {
+  users: User[];
+  metadata: Metadata;
+}
+
+interface User {
+  id: number;
+  profile: Profile;
+}
+
+interface Profile {
+  name: string;
+  preferences: Preferences;
+}
+
+interface Preferences {
+  theme: string;
+  notifications: Notifications;
+}
+
+interface Notifications {
+  email: boolean;
+  push: boolean;
+}
+
+interface Metadata {
+  total: number;
+  page: number;
+}
+*/
+
+// Real-world example: API response handler
+async function handleApiResponse() {
+  // Simulate API response
+  const apiResponse = await fetch('https://jsonplaceholder.typicode.com/posts/1');
+  const data = await apiResponse.json();
+
+  // Generate types dynamically
+  const types = JsonToTsConverter.convert(data, 'PostResponse', 'root');
+  console.log(types);
+  /*
+  export interface PostResponse {
+    userId: number;
+    id: number;
+    title: string;
+    body: string;
+  }
+  */
+}
+
+// Working with arrays and unions
+const unionExample = {
+  items: [
+    { type: 'text', value: 'Hello' },
+    { type: 'number', value: 42 },
+    { type: 'boolean', value: true }
+  ]
+};
+
+const unionTypes = JsonToTsConverter.convert(unionExample, 'UnionContainer', 'all');
+console.log(unionTypes);
+/*
+export interface TextItem {
+  type: string;
+  value: string;
+}
+
+export interface NumberItem {
+  type: string;
+  value: number;
+}
+
+export interface BooleanItem {
+  type: string;
+  value: boolean;
+}
+
+export interface UnionContainer {
+  items: (TextItem | NumberItem | BooleanItem)[];
+}
+*/
 ```
 
 ## API Reference 📖
 
-### `JsonToTsConverter.convert(json, rootInterfaceName)`
+### `JsonToTsConverter.convert(json, rootInterfaceName, exportType)`
 
-### `JsonToFlattenedTsConverter.convert(json, rootInterfaceName)`
+### `JsonToFlattenedTsConverter.convert(json, rootInterfaceName, exportType)`
 
 Converts a JSON object into TypeScript interfaces.
 
 **Parameters:**
 
-  - `json`: The JSON object to convert
-  - `rootInterfaceName`: Name for the root interface
+  - `json`: The JSON object or JSON string to convert
+  - `rootInterfaceName`: Name for the root interface (optional, default: `'RootObject'`)
+  - `exportType`: Export mode (`'all'`, `'root'`, or `'none'`) (optional, default: `'all'`)
 
 **Returns:** A string containing the generated TypeScript interfaces
+
+**Notes:**
+- The `json` parameter can be either a parsed JSON object or a JSON string
+- Export modes:
+  - `'all'`: All interfaces are exported
+  - `'root'`: Only the root interface is exported, others are internal
+  - `'none'`: No interfaces are exported (all are internal)
 
 ## Contributing 🤝
 
