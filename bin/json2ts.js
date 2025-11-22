@@ -102,16 +102,33 @@ function toExportType (type) {
 }
 
 /**
+ * Reads input from stdin if available
+ * @returns {Promise<string|null>} - Promise that resolves with the stdin data or null
+ */
+async function readStdin() {
+  if (process.stdin.isTTY) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    let data = '';
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', chunk => {
+      data += chunk;
+    });
+    process.stdin.on('end', () => {
+      resolve(data);
+    });
+    process.stdin.on('error', reject);
+  });
+}
+
+/**
  * Main execution function
  * Handles command-line arguments, processes JSON input, and generates TypeScript interfaces
  */
 (async function() {
   printHeader();
-
-  if (!argv['file'] && !argv['text']) {
-    console.error('Missing required arguments. Use --help for usage information.');
-    process.exit(1);
-  }
 
   const dir = path.resolve(process.cwd());
   const flat = argv.flat;
@@ -120,8 +137,16 @@ function toExportType (type) {
   try {
     if (argv.file) {
       jsonData = fs.readFileSync(argv.file, { encoding: 'utf-8' });
-    } else {
+    } else if (argv.text) {
       jsonData = argv.text;
+    } else {
+      // Try to read from stdin if no file or text is provided
+      jsonData = await readStdin();
+    }
+
+    if (!jsonData) {
+      console.error('Missing required arguments. Use --help for usage information.');
+      process.exit(1);
     }
   } catch (error) {
     console.error('Error parsing JSON:', error.message);
