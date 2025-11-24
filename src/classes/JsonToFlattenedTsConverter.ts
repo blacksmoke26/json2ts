@@ -4,16 +4,19 @@
  * @see https://github.com/blacksmoke26
  */
 
-import ConverterBase, { ExportType } from '~/base/ConverterBase';
+import ConverterBase, { ConvertOptions, ExportType } from '~/base/ConverterBase';
+
+// utils
+import ConverterUtils from '~/utils/ConverterUtils';
 
 /**
  * A utility class that converts JSON objects into flattened TypeScript interfaces.
- * This converter inlines all nested object properties into a single interface definition,
- * avoiding the need for separate interface definitions for nested structures.
+ * This converter embeds all nested object properties into a single interface definition,
+ * eliminating the need for separate interface definitions for nested structures.
  *
  * Key features:
  * - Converts JSON objects to TypeScript interfaces
- * - Inlines nested objects into the main interface
+ * - Embeds nested objects into the main interface
  * - Handles arrays and primitive types appropriately
  * - Prevents infinite recursion with circular reference detection
  * - Supports custom interface names and export types
@@ -55,11 +58,21 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
   private visitedObjects = new WeakSet<object>();
 
   /**
+   * Creates an instance of JsonToFlattenedTsConverter.
+   * @param options Configuration options for the conversion process.
+   */
+  private constructor(private options: ConvertOptions = {}) {
+    super();
+  }
+
+  /**
    * Converts a JSON object or string into a flattened TypeScript interface.
    *
    * @param jsonData - The JSON data to convert. Can be an object or a JSON string.
    * @param interfaceName - Name for the generated interface. Defaults to 'RootObject'.
    * @param exportType - Type of export ('root' or 'interface'). Defaults to 'root'.
+   * @param options Configuration options for the conversion process, including array
+   *                tuple size constraints and other conversion settings.
    * @returns The generated TypeScript interface as a string, or null if input is invalid.
    *
    * @example
@@ -83,14 +96,13 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
    * // }
    * ```
    */
-  public static convert(jsonData: unknown | string, interfaceName: string = 'RootObject', exportType: ExportType = 'root'): string | null {
+  public static convert(jsonData: unknown | string, interfaceName: string = 'RootObject', exportType: ExportType = 'root', options: ConvertOptions = {}): string | null {
     const parsed = this.parseJson(jsonData);
 
     return !parsed
       ? null
-      : new JsonToFlattenedTsConverter().convertJson(parsed, interfaceName, exportType);
+      : new JsonToFlattenedTsConverter(options).convertJson(parsed, interfaceName, exportType);
   }
-
   /**
    * Generates the TypeScript interface code from parsed JSON data.
    *
@@ -134,9 +146,20 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     // Handle arrays
     if (Array.isArray(obj)) {
       if (obj.length === 0) {
-        return '{}'; // Empty array type
+        return '{}[]'; // Empty array type
       }
-      // Use the first element's type as the representative for the whole array
+
+      // Check if array contains only primitives or mixed types
+      const containsOnlyPrimitives = obj.every(item => item === null || typeof item !== 'object');
+
+      if (containsOnlyPrimitives) {
+        // Use ArrayUtil to detect the array type (including tuple detection)
+        const maxTupleSize = this.options.arrayMaxTupleSize ?? 10;
+        const minTupleSize = this.options.arrayMinTupleSize ?? 2;
+        return ConverterUtils.detectTypeFromArray(obj, maxTupleSize, minTupleSize);
+      }
+
+      // For arrays with objects, use the first element's type as the representative
       const elementType = this.getType(obj[0], indentLevel);
       return `${elementType}[]`;
     }
