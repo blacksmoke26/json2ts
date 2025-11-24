@@ -12,35 +12,38 @@ from JSON objects, making type-safe development easier and more efficient.
 - 🔄 Transform nested/complex JSON into flattened interface
 - ❓ Support for optional properties and nullable types
 - 🗂️ Preserve original JSON structure in generated interfaces
-- 🌐 Export options for generated interfaces (all, root, none)
+- 🌐 Export options for generated interfaces (`all`, `root`, `none`)
 - 📊 Handle complex nested structures with arrays of objects
 - 🚀 Fast and lightweight CLI for quick conversions
 - 📝 Support for both file and direct text input
 - 🔢 Intelligent type inference for numbers, strings, booleans, and null values
 - 🔌 Read JSON directly from stdin for pipeline operations
 
-## CLI Usage 💻
+## Command Line Interface 💻
 
-The package includes a command-line interface (CLI) for quick conversions without writing code.
+The package includes a command-line interface (CLI) for quick conversions
+without writing code.
 
 ### Installation 📦
 
 ```bash
-npm install -g @junaidatari/json2ts   # for NPM
-pnpm install -g @junaidatari/json2ts  # for PNPM
-yarn global add @junaidatari/json2ts  # for Yarn
+npm install -g @junaidatari/json2ts   # NPM
+pnpm install -g @junaidatari/json2ts  # PNPM
+yarn global add @junaidatari/json2ts  # Yarn
 ```
 
 ### Command Options ⚙️
 
-| Option         | Type     | Description                                                               | Default        |
-|----------------|----------|---------------------------------------------------------------------------|----------------|
-| `-f, --file`   | `string` | Path to the JSON file to be converted to TypeScript interfaces            | Required (unless `--text` is used) |
-| `-t, --text`   | `string` | Raw JSON string to be converted to TypeScript interfaces                 | Required (unless `--file` is used) |
-| `-o, --output` | `string` | Path where the generated TypeScript interface file will be saved          | Prints to console if not specified |
-| `-n, --name`   | `string` | Name for the root TypeScript interface                                    | `RootObject`   |
-| `-l, --flat`   | `boolean`| Generate a single flattened interface instead of nested interfaces        | `false`        |
-| `-e, --export` | `string` | Export type: `a`=all, `r`=root, or `n`=none                        | `r` (root only) |
+| Option         | Type     | Description                              | Default        |
+|----------------|----------|------------------------------------------|----------------|
+| `-f, --file`   | `string` | Path to JSON file to convert             | Required*      |
+| `-t, --text`   | `string` | Raw JSON string to convert               | Required*      |
+| `-o, --output` | `string` | Output file path                         | Prints to console |
+| `-n, --name`   | `string` | Root interface name                      | `RootObject`   |
+| `-l, --flat`   | `boolean`| Generate flattened interface             | `false`        |
+| `-e, --export` | `string` | Export type: `a`=all, `r`=root, `n`=none | `r` (root)     |
+
+*Either `--file` or `--text` must be provided or pipe through to read std input.
 
 ### Examples 📝
 
@@ -50,109 +53,87 @@ yarn global add @junaidatari/json2ts  # for Yarn
 json2ts -f input.json -o types.ts -n ApiResponse
 ```
 
-#### Direct text conversion and print to console
+#### Direct text conversion
 
 ```bash
 # Linux/Mac
-json2ts -t '{"user": {"name": "John Doe"}}' -n User
+json2ts -t '{"user": {"name": "John"}}' -n User
 
 # Windows
-json2ts -t "{\"user\": {\"name\": \"John Doe\"}}" -n User
+json2ts -t "{\"user\": {\"name\": \"John\"}}" -n User
 ```
 
 #### Generate flattened interface
 
 ```bash
-json2ts -f complex.json -o flat-types.ts -n ComplexData --flat
+json2ts -f complex.json -o flat-types.ts -n Data --flat
 ```
 
 #### Export all interfaces
 
 ```bash
-json2ts -f input.json -o types.ts -n ApiResponse --export all
+json2ts -f input.json -o types.ts -n Response -e a
 ```
 
-#### No exports (all interfaces internal)
+#### No exports (internal interfaces)
 
 ```bash
-json2ts -f input.json -o types.ts -n ApiResponse --export none
+json2ts -f input.json -o types.ts -n Response --export n
 ```
 
-#### Pipeline with curl (fetch JSON from API)
+#### Pipeline with curl
 
 ```bash
-# Convert API response directly to TypeScript types
-curl -s https://jsonplaceholder.typicode.com/posts/1 | json2ts -n UserResponse -o user-types.ts
+curl -s https://jsonplaceholder.typicode.com/posts/1 | \
+  json2ts -n UserResponse -o user-types.ts
 ```
 
 #### Pipeline with other commands
 
 ```bash
-# Convert from clipboard (using xclip on Linux)
+# Convert from clipboard (Linux)
 xclip -selection clipboard -o | json2ts -n ClipboardData
 
-# Convert from file and pipe to another command
+# Convert from file and copy to clipboard
 json2ts -f data.json | tee types.ts | pbcopy
 
-# Chain multiple conversions
-curl -s https://api.example.com/data | json2ts -n ApiResponse | npx prettier --parser typescript
+# Format with prettier
+curl -s https://api.example.com/data | json2ts -n Data | \
+  npx prettier --parser typescript
 ```
 
-#### Using with package managers
+#### Configuration files
 
 ```bash
-# Convert package.json to TypeScript interface
+# Convert package.json
 cat package.json | json2ts -n PackageConfig -o package-types.ts
 
-# Convert npm shrinkwrap file
-json2ts -f npm-shrinkwrap.json -n ShrinkwrapData -o shrinkwrap-types.ts --flat
-```
-
-#### Processing configuration files
-
-```bash
-# Convert TypeScript config
+# Convert tsconfig.json
 json2ts -f tsconfig.json -n TsConfig -o tsconfig-types.ts
-
-# Convert ESLint config
-cat .eslintrc.json | json2ts -n EsLintConfig -o eslint-types.ts
 ```
 
-#### Working with databases
+#### Database exports
 
 ```bash
-# Convert MongoDB export to TypeScript
+# MongoDB export
 mongoexport --collection users --out users.json
-json2ts -f users.json -n UserDocument -o user-types.ts --export all
+json2ts -f users.json -n UserDoc -o user-types.ts --export all
 
-# Convert from database query result
-psql -c "SELECT row_to_json(t) FROM (SELECT * FROM users LIMIT 1) t" | json2ts -n DBUser -o db-types.ts
+# PostgreSQL query
+psql -c "SELECT row_to_json(t) FROM (SELECT * FROM users) t" | \
+  json2ts -n DBUser -o db-types.ts
 ```
 
 #### Interactive usage
 
 ```bash
-# Interactive JSON input with multiple lines
-echo '{
-  "name": "test",
-  "data": {
-    "items": [1, 2, 3]
-  }
-}' | json2ts -n TestData
+echo '{"name": "test", "data": {"items": [1, 2, 3]}}' | \
+  json2ts -n TestData
 
-# Using heredoc for complex JSON
-json2ts -n ComplexConfig -o config-types.ts << EOF
+json2ts -n Config -o config-types.ts << EOF
 {
-  "server": {
-    "port": 3000,
-    "host": "localhost"
-  },
-  "database": {
-    "url": "mongodb://localhost:27017",
-    "options": {
-      "useNewUrlParser": true
-    }
-  }
+  "server": {"port": 3000},
+  "database": {"url": "mongodb://localhost"}
 }
 EOF
 ```
@@ -160,54 +141,47 @@ EOF
 #### Development workflows
 
 ```bash
-# Generate types from API schema in CI/CD
-curl -s "$API_SCHEMA_URL" | json2ts -n ApiSchema -o src/types/api.ts
+# Generate types from API schema
+curl -s "$API_SCHEMA_URL" | json2ts -n Schema -o src/types/api.ts
 
-# Watch for changes and regenerate types
+# Watch for changes
 while inotifywait -e modify data/; do
   for file in data/*.json; do
-    basename=$(basename "$file" .json)
-    json2ts -f "$file" -o "types/${basename}.ts" -n "${basename^}Type"
+    base=$(basename "$file" .json)
+    json2ts -f "$file" -o "types/${base}.ts" -n "${base^}Type"
   done
 done
 
-# Generate types for all JSON files in a directory
-find src/data -name "*.json" -exec sh -c 'json2ts -f "$0" -o "src/types/$(basename "$0" .json).ts" -n "$(basename "$0" .json | sed "s/\b\w/\U/g/g")"' {} \;
+# Process all JSON files
+find src/data -name "*.json" -exec sh -c \
+  'json2ts -f "$0" -o "src/types/$(basename "$0" .json).ts"' {} \;
 ```
 
-#### Processing multiple files with a script
+#### Multiple files script
 
 ```bash
-# Create a script to process multiple JSON files
 for file in data/*.json; do
-  basename=$(basename "$file" .json)
-  json2ts -f "$file" -o "types/${basename}.ts" -n "${basename^}Data"
+  base=$(basename "$file" .json)
+  json2ts -f "$file" -o "types/${base}.ts" -n "${base^}Data"
 done
 ```
 
-### Advanced Usage Tips 💡
+### Tips 💡
 
-- **Input from stdin**: Use `-` as the file path to read from standard input
-- **Version information**: Use `--version` to check the current version
-- **Detailed help**: Use `--help` to see all available options with descriptions
-
-### Help ❓
-
-For more information about available options, use:
-
-```bash
-json2ts --help
-```
+- Check version: `json2ts --version`
+- View help: `json2ts --help`
 
 ## Programmatic API 📚
 
+### Installation
+
 ```bash
-npm install @junaidatari/json2ts   # for NPM
-pnpm install @junaidatari/json2ts  # for PNPM
-yarn add @junaidatari/json2ts      # for Yarn
+npm install @junaidatari/json2ts   # NPM
+pnpm install @junaidatari/json2ts  # PNPM
+yarn add @junaidatari/json2ts      # Yarn
 ```
 
-## Usage 🚀
+### Usage 🚀
 
 ```typescript
 import { 
@@ -279,9 +253,8 @@ const interfaces = JsonToTsConverter.convert(json, 'Person', 'all');
 console.log('Generated interfaces:');
 console.log(interfaces);
 /* Output:
-export interface Address {
-  street: string;
-  city: string;
+export interface Person {
+  user: User;
 }
 
 export interface User {
@@ -290,8 +263,9 @@ export interface User {
   address: Address;
 }
 
-export interface Person {
-  user: User;
+export interface Address {
+  street: string;
+  city: string;
 }
 */
 
@@ -409,62 +383,29 @@ async function handleApiResponse() {
   }
   */
 }
-
-// Working with arrays and unions
-const unionExample = {
-  items: [
-    { type: 'text', value: 'Hello' },
-    { type: 'number', value: 42 },
-    { type: 'boolean', value: true }
-  ]
-};
-
-const unionTypes = JsonToTsConverter.convert(unionExample, 'UnionContainer', 'all');
-console.log(unionTypes);
-/*
-export interface TextItem {
-  type: string;
-  value: string;
-}
-
-export interface NumberItem {
-  type: string;
-  value: number;
-}
-
-export interface BooleanItem {
-  type: string;
-  value: boolean;
-}
-
-export interface UnionContainer {
-  items: (TextItem | NumberItem | BooleanItem)[];
-}
-*/
 ```
 
 ## API Reference 📖
 
-### `JsonToTsConverter.convert(json, rootInterfaceName, exportType)`
+### Methods
 
-### `JsonToFlattenedTsConverter.convert(json, rootInterfaceName, exportType)`
+#### `JsonToTsConverter.convert(json, name?, export?)`
+#### `JsonToFlattenedTsConverter.convert(json, name?, export?)`
 
-Converts a JSON object into TypeScript interfaces.
+Converts JSON to TypeScript interfaces.
 
 **Parameters:**
+- `json`: JSON object or string to convert
+- `name`: Root interface name (default: `'RootObject'`)
+- `export`: Export mode (`'all'`, `'root'`, `'none'`) (default: `'all'`)
 
-  - `json`: The JSON object or JSON string to convert
-  - `rootInterfaceName`: Name for the root interface (optional, default: `'RootObject'`)
-  - `exportType`: Export mode (`'all'`, `'root'`, or `'none'`) (optional, default: `'all'`)
-
-**Returns:** A string containing the generated TypeScript interfaces
+**Returns:** Generated TypeScript interfaces string
 
 **Notes:**
-- The `json` parameter can be either a parsed JSON object or a JSON string
 - Export modes:
-  - `'all'`: All interfaces are exported
-  - `'root'`: Only the root interface is exported, others are internal
-  - `'none'`: No interfaces are exported (all are internal)
+  - `'all'`: All interfaces exported
+  - `'root'`: Only root interface exported
+  - `'none'`: No interfaces exported
 
 ## Contributing 🤝
 
@@ -492,16 +433,16 @@ This project is licensed under the ISC License.
 
 ## Support 💬
 
-If you encounter any issues or have questions, please:
+If you encounter issues or have questions:
 
-  - Search existing [GitHub Issues](https://github.com/blacksmoke26/json2ts/issues)
-  - Create a [new issue](https://github.com/blacksmoke26/json2ts/issues/new) with detailed information
+- Search existing [GitHub Issues](https://github.com/blacksmoke26/json2ts/issues)
+- Create a [new issue](https://github.com/blacksmoke26/json2ts/issues/new)
 
 ## Acknowledgments 🙏
 
-  - This project was originally developed as part of [Posquelize](https://github.com/blacksmoke26/posquelize).
-  - Special thanks to all contributors who helped improve this tool.
-  - Inspired by the need for better type safety in JSON-heavy applications.
+- Originally developed for [Posquelize](https://github.com/blacksmoke26/posquelize)
+- Thanks to all contributors
+- Inspired by the need for type safety in JSON-heavy applications
 
 ## Copyright ©️
 
