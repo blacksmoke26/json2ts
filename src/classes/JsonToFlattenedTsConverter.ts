@@ -4,10 +4,13 @@
  * @see https://github.com/blacksmoke26
  */
 
-import ConverterBase, { ConvertOptions, ExportType } from '~/base/ConverterBase';
+import ConverterBase from '~/base/ConverterBase';
 
 // utils
 import ConverterUtils from '~/utils/ConverterUtils';
+
+// types
+import type { ExportType, ConvertOptions } from '~/typings/global';
 
 /**
  * A utility class that converts JSON objects into flattened TypeScript interfaces.
@@ -188,7 +191,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, indentLevel + 1);
-      body += `${nextIndent}${ConverterUtils.suggestPropertyName(key)}: ${type};\n`;
+      body += `${nextIndent}${this.toPropertyName(key, this.options?.propertyCase ?? 'original')}: ${type};\n`;
     }
 
     // Remove object from visited set after processing
