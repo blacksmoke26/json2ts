@@ -6,16 +6,8 @@
   */
 import { camelCase, kebabCase, pascalCase, snakeCase } from 'change-case';
 
-/**
- * Supported case naming conventions for transforming strings.
- * - camel: camelCase (first letter lowercase, subsequent words capitalized)
- * - lower_snake: snake_case (all lowercase with underscores)
- * - original: unchanged case (preserves original casing)
- * - pascal: PascalCase (first letter and subsequent words capitalized)
- * - upper_snake: UPPER_SNAKE_CASE (all uppercase with underscores)
- * - kebab: kebab-case (all lowercase with hyphens)
- */
-export type CaseType = 'camel' | 'lower_snake' | 'original' | 'pascal' | 'upper_snake' | 'kebab';
+// types
+import type { CaseType } from '~/typings/global';
 
 export default abstract class StringUtils {
   /**
