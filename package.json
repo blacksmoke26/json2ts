@@ -81,7 +81,8 @@
     "prepack": "crlf --set=LF bin/json2ts.js",
     "d:pack": "npm run build && npm pack && npm run clean",
     "dev": "ts-node ./samples/json-to-interface.ts",
-    "dev:flat": "ts-node ./samples/json-to-flat-interface.ts"
+    "dev:flat": "ts-node ./samples/json-to-flat-interface.ts",
+    "dev:ary": "ts-node ./samples/json-to-array-primitive.ts"
   },
   "engines": {
     "node": ">= 20"
