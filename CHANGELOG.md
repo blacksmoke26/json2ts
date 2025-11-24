@@ -1,5 +1,9 @@
 # Changelog
 
+## V0.0.4 - 2025-XX-XX
+
+- Fix typos in documentation, version correction.
+
 ## V0.0.3 - 2025-11-22
 
 - Added `stdbin` cli support:
@@ -11,7 +15,7 @@ curl -s https://jsonplaceholder.typicode.com/posts/1 | json2ts -n UserResponse -
 ## V0.0.2 - 2025-11-22
 
 - Added export type support for generated interfaces
-- New `--export` option to control interface exports ('all', 'root', or 'none')
+- New `--export` option to control interface exports (`a`=all, `r`=root, or `n`=none)
 - Updated CLI and programmatic API to support flexible export configurations
 
 ## v0.0.1 - 2025-11-19
