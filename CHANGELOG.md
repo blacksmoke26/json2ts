@@ -2,7 +2,6 @@
 
 ## V0.0.4 - 2025-XX-XX
 
-### Enhanced
 - Added property name suggestion and correction logic based on strict TypeScript identifier rules
 - Added comprehensive type inference with strict mode support
 - Implemented circular reference detection to prevent infinite recursion
