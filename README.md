@@ -74,16 +74,16 @@ yarn global add @junaidatari/json2ts  # Yarn
 
 ### Command Options ⚙️
 
-| Option         | Type     | Description                              | Default        |
-|----------------|----------|------------------------------------------|----------------|
-| `-f, --file`   | `string` | Path to JSON file to convert             | Required*      |
-| `-t, --text`   | `string` | Raw JSON string to convert               | Required*      |
-| `-o, --output` | `string` | Output file path                         | Prints to console |
-| `-n, --name`   | `string` | Root interface name                      | `RootObject`   |
-| `-l, --flat`   | `boolean`| Generate flattened interface             | -              |
-| `-e, --export` | `string` | Export type: `a`=all, `r`=root, `n`=none | `r` *(root)* |
-| `-pc, --property-case` | `string` | Property case transformation: `c`=camelCase, `l`=lower_snake_case, `o`=original, `p`=PascalCase, `u`=UPPER_SNAKE_CASE, `k`=kebab-case | `o` *(original)* |
-| `-s, --strict` | `boolean`| Generate strict TypeScript types with exact property matching | - |
+| Option                  | Type     | Description                              | Default        |
+|-------------------------|----------|------------------------------------------|----------------|
+| `-f, --file`            | `string` | Path to JSON file to convert             | Required*      |
+| `-t, --text`            | `string` | Raw JSON string to convert               | Required*      |
+| `-o, --output`          | `string` | Output file path                         | Prints to console |
+| `-n, --name`            | `string` | Root interface name                      | `RootObject`   |
+| `-l, --flat`            | `boolean`| Generate flattened interface             | -              |
+| `-e, --export`          | `string` | Export type: `a`=all, `r`=root, `n`=none | `r` *(root)* |
+| `--pc, --property-case` | `string` | Property case transformation: `c`=camelCase, `l`=lower_snake_case, `o`=original, `p`=PascalCase, `u`=UPPER_SNAKE_CASE, `k`=kebab-case | `o` *(original)* |
+| `-s, --strict`          | `boolean`| Generate strict TypeScript types with exact property matching | - |
 
 Either `--file` or `--text` must be provided or pipe through to read directly from the stdin.
 
