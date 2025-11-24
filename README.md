@@ -18,6 +18,7 @@ from JSON objects, making type-safe development easier and more efficient.
 - 📝 Support for both file and direct text input
 - 🔢 Intelligent type inference for numbers, strings, booleans, and null values
 - 🔌 Read JSON directly from stdin for pipeline operations
+- ✏️ Added property name suggestion and correction logic based on strict TypeScript identifier rules
 - 🔢 **Smart Array Type Detection**: Automatically infers array types including:
   - Primitive arrays (e.g., `string[]`, `number[]`)
   - Mixed-type tuples (e.g., `[string, number, boolean]`)
@@ -26,13 +27,6 @@ from JSON objects, making type-safe development easier and more efficient.
 - 📐 **Tuple Generation**: Converts fixed-size arrays with mixed types to TypeScript tuples when:
   - Array length is between `arrayMinTupleSize` (default: 2) and `arrayMaxTupleSize` (default: 10)
   - Elements have different types (e.g., `[1, "text", true]` → `[number, string, boolean]`)
-- 🎯 **Advanced Type Translation** *(for `JavaScript` conversion only)*:
-  - Null values → `null` type (not `any`)
-  - Undefined values → `undefined` type
-  - Symbols → `symbol` type
-  - BigInt → `bigint` type
-  - Functions → `function` type
-  - Dates/Regex → `object` type (with proper handling)
 - ⚙️ **Configurable Array Handling**:
   - `arrayMaxTupleSize`: Maximum array length for tuple conversion (default: `10`)
   - `arrayMinTupleSize`: Minimum array length for tuple conversion (default: `2`)
@@ -45,6 +39,17 @@ from JSON objects, making type-safe development easier and more efficient.
   - Preserves optional properties (`?:`) from JSON undefined values
   - Handles nullable types with union syntax (`| null`)
   - Maintains readonly constraints where applicable
+- 🔄 **Circular Reference Handling**: Automatically detects and resolves circular references in JSON structures to prevent infinite recursion during conversion
+- 📊 **Smart Type Inference**: Intelligently analyzes JSON data to determine the most appropriate TypeScript types including union types for mixed values
+- ⚙️ **Configurable Conversion Options**: Support for custom array tuple size limits, strict type checking, and type mapping for precise control over output
+- 🎯 **Advanced Interface Naming**: Automatically generates meaningful interface names based on JSON structure and property keys
+- 🎯 **Advanced Type Translation** *(for `JavaScript` conversion only)*:
+  - Null values → `null` type (not `any`)
+  - Undefined values → `undefined` type
+  - Symbols → `symbol` type
+  - BigInt → `bigint` type
+  - Functions → `function` type
+  - Dates/Regex → `object` type (with proper handling)
 
 ## Command Line Interface 💻
 
@@ -68,9 +73,9 @@ yarn global add @junaidatari/json2ts  # Yarn
 | `-o, --output` | `string` | Output file path                         | Prints to console |
 | `-n, --name`   | `string` | Root interface name                      | `RootObject`   |
 | `-l, --flat`   | `boolean`| Generate flattened interface             | -              |
-| `-e, --export` | `string` | Export type: `a`=all, `r`=root, `n`=none | `r` (root)     |
+| `-e, --export` | `string` | Export type: `a`=all, `r`=root, `n`=none | `r` *(root)* |
 
-*Either `--file` or `--text` must be provided or pipe through to read std input.
+*Either `--file` or `--text` must be provided or pipe through to read directly from stdin.
 
 ### Examples 📝
 
@@ -213,7 +218,7 @@ yarn add @junaidatari/json2ts      # Yarn
 ```typescript
 import { 
   JsonToTsConverter, 
-  JsonToFlattenedTsConverter 
+  JsonToFlattenedTsConverter, 
 } from '@junaidatari/json2ts';
 
 // Sample JSON object
@@ -427,19 +432,13 @@ Converts JSON to TypeScript interfaces.
 - `json`: JSON object or string to convert
 - `name`: Root interface name (default: `'RootObject'`)
 - `export`: Export mode (`'all'`, `'root'`, `'none'`) (default: `'all'`)
-- `options`: Configuration options for array handling (optional)
-
-**Returns:** Generated TypeScript interfaces string
-
-**Notes:**
-
-- Export modes:
-  - `'all'`: All interfaces exported
-  - `'root'`: Only root interface exported
-  - `'none'`: No interfaces exported
-- Options include:
+- `options`: Configuration options for conversion (optional)
   - `arrayMaxTupleSize`: Maximum array length for tuple conversion (default: `10`)
   - `arrayMinTupleSize`: Minimum array length for tuple conversion (default: `2`)
+  - `strict`: Enable strict type checking for better type inference (default: `false`)
+  - `typeMap`: Custom type mapping for overriding default type detection (default: `{}}`)
+
+**Returns:** Generated TypeScript interfaces string
 
 ## Contributing 🤝
 
@@ -451,7 +450,7 @@ We welcome contributions! Please follow these steps:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Development Setup 🔧
+## Development Setup 🔧
 
 ```bash
 git clone https://github.com/blacksmoke26/json2ts.git
@@ -459,7 +458,18 @@ cd json2ts
 npm install
 npm run dev
 npm run dev:flat
-npm run dev:ary
+```
+
+### Testing CLI with `/samples/*.json` JSON files
+```bash
+npm run build
+node .\bin\json2ts -f .\samples\jsons\sample.json -n Sample1
+node .\bin\json2ts -f .\samples\jsons\sample2.json -n Sample2 -o sample2.ts --flat
+```
+
+### Running test cases
+```bash
+npm run test
 ```
 
 ## License 📄
