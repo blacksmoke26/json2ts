@@ -17,6 +17,6 @@ import JsonToFlattenedTsConverter from '~/classes/JsonToFlattenedTsConverter';
 // utils
 import ConverterUtils from '~/utils/ConverterUtils';
 
-export type { ExportType, ConvertOptions } from '~/base/ConverterBase';
+export type { ExportType, ConvertOptions, CaseType } from '~/typings/global';
 
 export { JsonToFlattenedTsConverter, JsonToTsConverter, ConverterUtils };
