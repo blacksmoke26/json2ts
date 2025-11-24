@@ -4,8 +4,11 @@
  * @see https://github.com/blacksmoke26
  */
 
-import ConverterBase, { ConvertOptions, ExportType } from '~/base/ConverterBase';
+import ConverterBase from '~/base/ConverterBase';
 import ConverterUtils from '~/utils/ConverterUtils';
+
+// types
+import type { ExportType, ConvertOptions } from '~/typings/global';
 
 /**
  * Converts JSON data into TypeScript interface definitions with advanced type inference.
@@ -170,7 +173,7 @@ export default class JsonToTsConverter extends ConverterBase {
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, this.capitalize(key), appendExport);
-      interfaceBody += `  ${ConverterUtils.suggestPropertyName(key)}: ${type};\n`;
+      interfaceBody += `  ${this.toPropertyName(key, this.options?.propertyCase ?? 'original')}: ${type};\n`;
     }
 
     const fullInterface = `${appendExport ? 'export ' : ''}interface ${interfaceName} {\n${interfaceBody.trimEnd()}\n}`;

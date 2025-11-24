@@ -2,6 +2,8 @@
 
 ## V0.0.4 - 2025-XX-XX
 
+- Added property naming convention support with `propertyCase` option for transforming property names:
+  → (`camelCase`, `snake_case`, `kebab-case`, `PascalCase`, `UPPER_SNAKE_CASE`, or `original`)
 - Added property name suggestion and correction logic based on strict TypeScript identifier rules
 - Added comprehensive type inference with strict mode support
 - Implemented circular reference detection to prevent infinite recursion

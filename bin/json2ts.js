@@ -19,54 +19,68 @@ const { JsonToTsConverter, JsonToFlattenedTsConverter } = require('../index.js')
  * Command line arguments configuration using yargs
  * @type {import('yargs').Argv}
  */
- const argv = yargs(hideBin(process.argv))
-   .parserConfiguration({
-     'parse-numbers': false,
-   })
-   .version('0.0.4')
-   .usage('Usage: json2ts -f input.json -o output.ts')
-   .option('file', {
-     description: 'Path to the JSON file to be converted to TypeScript interfaces',
-     type: 'string',
-     alias: 'f',
-   })
-   .option('text', {
-     description: 'Raw JSON string to be converted to TypeScript interfaces',
-     type: 'string',
-     alias: 't',
-   })
-   .option('output', {
-     description: 'Path where the generated TypeScript interface file will be saved',
-     type: 'string',
-     alias: 'o',
-   })
-   .option('name', {
-     description: 'Name for the root TypeScript interface (default: RootObject)',
-     type: 'string',
-     alias: 'n',
-   })
+const argv = yargs(hideBin(process.argv))
+  .parserConfiguration({
+    'parse-numbers': false,
+  })
+  .version('0.0.4')
+  .usage('Usage: json2ts -f input.json -o output.ts')
+  .option('file', {
+    description: 'Path to the JSON file to be converted to TypeScript interfaces',
+    type: 'string',
+    alias: 'f',
+  })
+  .option('text', {
+    description: 'Raw JSON string to be converted to TypeScript interfaces',
+    type: 'string',
+    alias: 't',
+  })
+  .option('output', {
+    description: 'Path where the generated TypeScript interface file will be saved',
+    type: 'string',
+    alias: 'o',
+  })
+  .option('name', {
+    description: 'Name for the root TypeScript interface (default: RootObject)',
+    type: 'string',
+    alias: 'n',
+  })
   .option('export', {
     description: 'Export type for generated interfaces: "a" (all: default), "r" (root), or "n" (none)',
     type: 'string',
     choices: ['a', 'r', 'n'],
     alias: 'e',
   })
-   .option('flat', {
-     description: 'Generate a single flattened interface instead of nested interfaces',
-     type: 'boolean',
-     alias: 'l',
-   })
-   .default({
-     flat: false,
-     file: null,
-     text: null,
-     name: 'RootObject',
-     export: 'r',
-     output: null,
-   })
-   .showHelpOnFail(true, 'Use --help for usage')
-   .help()
-   .parse();
+  .option('property-case', {
+    description: 'Transform property names to a specific case format. Options:\n - c (camelCase)\n - l (lower_snake_case)\n - o (preserve original)\n - p (PascalCase)\n - u (UPPER_SNAKE_CASE)\n - k (kebab-case)',
+    type: 'string',
+    choices: ['c', 'l', 'o', 'p', 'u', 'k'],
+    alias: 'pc',
+  })
+  .option('flat', {
+    description: 'Generate a single flattened interface instead of nested interfaces',
+    type: 'boolean',
+    alias: 'l',
+  })
+  .option('strict', {
+    description: 'Generate strict TypeScript types with exact property matching',
+    type: 'boolean',
+    alias: 's',
+  })
+  .default({
+    file: null,
+    text: null,
+    name: 'RootObject',
+    flat: false,
+    'export': 'r',
+    'property-case': 'o',
+    strict: false,
+    output: null,
+  })
+  .showHelpOnFail(true, 'Use --help for usage')
+  .completion('completion', 'Generate completion script for your shell')
+  .help()
+  .parse();
 
 /**
  * Prints the ASCII art header to the console
@@ -83,6 +97,23 @@ function printHeader (...l) {
  ░░░░░░░░   ░░░░░░   ░░░░░░  ░░░░ ░░░░░ ░░░░░░░░░░    ░░░░░    ░░░░░░  \n`);
 
   console.log(...l);
+}
+
+function toCaseType (alias) {
+  switch (alias) {
+    case 'c':
+      return 'camel';
+    case 'l':
+      return 'lower_snake';
+    case 'p':
+      return 'pascal';
+    case 'u':
+      return 'upper_snake';
+    case 'k':
+      return 'kebab';
+    default:
+      return 'original';
+  }
 }
 
 /**
@@ -105,7 +136,7 @@ function toExportType (type) {
  * Reads input from stdin if available
  * @returns {Promise<string|null>} - Promise that resolves with the stdin data or null
  */
-async function readStdin() {
+async function readStdin () {
   if (process.stdin.isTTY) {
     return null;
   }
@@ -131,7 +162,9 @@ async function readStdin() {
   printHeader();
 
   const dir = path.resolve(process.cwd());
-  const flat = argv.flat;
+  const flat = Object.hasOwn(argv, 'flat');
+  const propertyCase = toCaseType(argv['property-case']);
+  const strict = Object.hasOwn(argv, 'strict');
 
   let jsonData;
   try {
@@ -155,7 +188,12 @@ async function readStdin() {
   }
 
   const converter = flat ? JsonToFlattenedTsConverter : JsonToTsConverter;
-  const typescriptCode = converter.convert(jsonData, argv.name || 'RootObject', toExportType(argv['export'])) + `\n`;
+  const typescriptCode = converter.convert(
+    jsonData, argv.name || 'RootObject', toExportType(argv['export']), {
+      propertyCase,
+      strict,
+    },
+  ) + `\n`;
 
   if (argv['output']) {
     const outputFile = argv.output || path.join(dir, 'output.ts');

@@ -456,6 +456,549 @@ async function run(): Promise<void> {
       'premium': 'PremiumTag'
     }
   }));
+
+  // NEW TEST CASES FOR ALL OPTIONS FROM CONVERTERBASE.TS
+
+  console.log('\n=== Example 21: Property Case Transformations ===');
+  const propertyCaseJson = {
+    firstName: "John",
+    lastName: "Doe",
+    email_address: "john@example.com",
+    phone_number: "+1234567890",
+    isActive: true,
+    created_at: "2023-01-01",
+    lastLoginTime: "2023-12-31",
+    user_id: 12345
+  };
+
+  console.log('Original case:');
+  console.log(JsonToTsConverter.convert(propertyCaseJson, 'OriginalCase', 'root', {
+    propertyCase: 'original'
+  }));
+
+  console.log('\nCamel case:');
+  console.log(JsonToTsConverter.convert(propertyCaseJson, 'CamelCase', 'root', {
+    propertyCase: 'camel'
+  }));
+
+  console.log('\nLower snake case:');
+  console.log(JsonToTsConverter.convert(propertyCaseJson, 'SnakeCase', 'root', {
+    propertyCase: 'lower_snake'
+  }));
+
+  console.log('\nUpper snake case:');
+  console.log(JsonToTsConverter.convert(propertyCaseJson, 'UpperSnakeCase', 'root', {
+    propertyCase: 'upper_snake'
+  }));
+
+  console.log('\nPascal case:');
+  console.log(JsonToTsConverter.convert(propertyCaseJson, 'PascalCase', 'root', {
+    propertyCase: 'pascal'
+  }));
+
+  console.log('\nKebab case:');
+  console.log(JsonToTsConverter.convert(propertyCaseJson, 'KebabCase', 'root', {
+    propertyCase: 'kebab'
+  }));
+
+  console.log('\n=== Example 22: Array Tuple Configuration Edge Cases ===');
+  const tupleConfigJson = {
+    emptyArray: [],
+    singleItem: [42],
+    twoItems: [1, "two"],
+    threeItems: [1, "two", true],
+    fourItems: [1, "two", true, null],
+    fiveItems: [1, "two", true, null, {}],
+    sixItems: [1, "two", true, null, {}, []],
+    tenItems: Array.from({ length: 10 }, (_, i) => i + 1),
+    fifteenItems: Array.from({ length: 15 }, (_, i) => i + 1),
+    twentyItems: Array.from({ length: 20 }, (_, i) => i + 1)
+  };
+
+  // Test with minSize 1, maxSize 5
+  console.log('Min 1, Max 5:');
+  console.log(JsonToTsConverter.convert(tupleConfigJson, 'TupleMin1Max5', 'root', {
+    arrayMinTupleSize: 1,
+    arrayMaxTupleSize: 5
+  }));
+
+  // Test with minSize 3, maxSize 10
+  console.log('\nMin 3, Max 10:');
+  console.log(JsonToTsConverter.convert(tupleConfigJson, 'TupleMin3Max10', 'root', {
+    arrayMinTupleSize: 3,
+    arrayMaxTupleSize: 10
+  }));
+
+  // Test with minSize 5, maxSize 20
+  console.log('\nMin 5, Max 20:');
+  console.log(JsonToTsConverter.convert(tupleConfigJson, 'TupleMin5Max20', 'root', {
+    arrayMinTupleSize: 5,
+    arrayMaxTupleSize: 20
+  }));
+
+  // Test with minSize > maxSize (should use default values)
+  console.log('\nMin 10, Max 5 (invalid):');
+  console.log(JsonToTsConverter.convert(tupleConfigJson, 'TupleInvalid', 'root', {
+    arrayMinTupleSize: 10,
+    arrayMaxTupleSize: 5
+  }));
+
+  console.log('\n=== Example 23: Strict Mode with Complex Types ===');
+  const strictComplexJson = {
+    // Should infer specific types in strict mode
+    string_field: "hello",
+    number_field: 42,
+    boolean_field: true,
+    null_field: null,
+
+    // Arrays
+    string_array: ["a", "b", "c"],
+    number_array: [1, 2, 3],
+    mixed_array: ["a", 1, true, null],
+
+    // Nested objects
+    nested_object: {
+      prop1: "value1",
+      prop2: 100,
+      prop3: true,
+      prop4: null
+    },
+
+    // Complex nested
+    complex_nested: {
+      level1: {
+        level2: {
+          strings: ["x", "y", "z"],
+          numbers: [10, 20, 30],
+          flags: [true, false, null],
+          objects: [{ a: 1 }, { b: 2 }, { c: 3 }]
+        }
+      }
+    }
+  };
+
+  console.log('Strict mode enabled:');
+  console.log(JsonToTsConverter.convert(strictComplexJson, 'StrictMode', 'root', {
+    strict: true
+  }));
+
+  console.log('\nStrict mode disabled:');
+  console.log(JsonToTsConverter.convert(strictComplexJson, 'NonStrictMode', 'root', {
+    strict: false
+  }));
+
+  console.log('\n=== Example 24: Comprehensive Type Mapping ===');
+  const typeMappingJson = {
+    // Basic types with custom mappings
+    id: "uuid-v4",
+    timestamp: 1672531200000,
+    status: "active",
+    flag: true,
+
+    // Nested objects with mapped types
+    user: {
+      id: "user-123",
+      email: "user@example.com",
+      role: "admin",
+      created: "2023-01-01"
+    },
+
+    // Arrays with mapped element types
+    tags: ["tag1", "tag2", "tag3"],
+    scores: [100, 200, 300],
+    flags: [true, false, null],
+
+    // Complex nested structures
+    metadata: {
+      version: "1.0.0",
+      environment: "production",
+      features: {
+        beta: true,
+        experimental: null
+      }
+    }
+  };
+
+  console.log(JsonToTsConverter.convert(typeMappingJson, 'TypeMapping', 'root', {
+    typeMap: {
+      // Basic type mappings
+      'string': 'CustomString',
+      'number': 'CustomNumber',
+      'boolean': 'CustomBoolean',
+
+      // Value-specific mappings
+      'uuid-v4': 'UserID',
+      '1672531200000': 'Timestamp',
+      'active': 'UserStatus',
+      'admin': 'UserRole',
+      '2023-01-01': 'CreationDate',
+      'production': 'Environment',
+      '1.0.0': 'Version',
+      'beta': 'FeatureFlag',
+      'tag1': 'TagType',
+      '100': 'ScoreType',
+
+      // Property path mappings (if supported)
+      'user.id': 'UserID',
+      'user.email': 'EmailAddress',
+      'metadata.features.beta': 'BetaFeature'
+    }
+  }));
+
+  console.log('\n=== Example 25: All Options Combined - Maximum Complexity ===');
+  const maxComplexityJson = {
+    "user_id": "uuid-12345",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email_address": "john.doe@example.com",
+    "is_active": true,
+    "created_at_timestamp": 1672531200000,
+    "last_login_date": "2023-12-31",
+    "user_status": "premium",
+
+    "profile_data": {
+      "age": 30,
+      "is_verified": true,
+      "preferences_array": ["email", "sms", "push"],
+      "settings_config": {
+        "theme_name": "dark",
+        "notifications_enabled": true,
+        "privacy_level": "high",
+        "beta_features": {
+          "new_dashboard": false,
+          "ai_assistant": null,
+          "advanced_analytics": true
+        }
+      }
+    },
+
+    "contact_info_list": [
+      {
+        "contact_type": "email",
+        "contact_value": "john@example.com",
+        "is_primary": true
+      },
+      {
+        "contact_type": "phone",
+        "contact_value": "+1234567890",
+        "is_primary": false
+      },
+      {
+        "contact_type": "address",
+        "contact_value": "123 Main St",
+        "is_primary": null
+      }
+    ],
+
+    "activity_history": [
+      {
+        "activity_type": "login",
+        "timestamp_value": "2023-12-30T10:00:00Z",
+        "success_flag": true,
+        "metadata_obj": { ip: "192.168.1.1", device: "mobile" }
+      },
+      {
+        "activity_type": "purchase",
+        "timestamp_value": "2023-12-29T14:30:00Z",
+        "success_flag": true,
+        "metadata_obj": { amount: 99.99, currency: "USD" }
+      },
+      {
+        "activity_type": "logout",
+        "timestamp_value": "2023-12-30T18:00:00Z",
+        "success_flag": true,
+        "metadata_obj": { session_duration: 28800 }
+      }
+    ],
+
+    "nested_data_structures": {
+      "level_one": {
+        "level_two": {
+          "level_three": {
+            "string_collection": ["a", "b", "c", "d", "e"],
+            "number_sequence": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            "boolean_flags": [true, false, null, true],
+            "object_collection": [
+              { id: 1, type: "type1", active: true },
+              { id: 2, type: "type2", active: false },
+              { id: 3, type: "type3", active: null },
+              { id: 4, type: "type4", active: true },
+              { id: 5, type: "type5", active: false }
+            ],
+            "mixed_collection": [1, "two", true, null, { four: 4 }, [5, 6]]
+          }
+        }
+      }
+    },
+
+    "special_key_values": {
+      "": "empty_key",
+      "123numbers": "starts_with_numbers",
+      "with-dash": "dash_separated",
+      "with_underscore": "underscore_separated",
+      "with space": "space_separated",
+      "with.dot": "dot_separated",
+      "@mentions": "at_symbol",
+      "#hashtags": "hash_symbol",
+      "$dollars": "dollar_symbol",
+      "mixed-CASE_keys": "mixed_case"
+    }
+  };
+
+  console.log(JsonToTsConverter.convert(maxComplexityJson, 'MaxComplexityTest', 'all', {
+    // Array configuration
+    arrayMaxTupleSize: 8,
+    arrayMinTupleSize: 2,
+
+    // Strict mode
+    strict: true,
+
+    // Property case transformation
+    propertyCase: 'camel',
+
+    // Comprehensive type mapping
+    typeMap: {
+      // Basic types
+      'string': 'CustomStringType',
+      'number': 'CustomNumberType',
+      'boolean': 'CustomBooleanType',
+
+      // Specific values
+      'uuid-12345': 'UserID',
+      'john.doe@example.com': 'EmailAddress',
+      'premium': 'UserStatus',
+      '1672531200000': 'UnixTimestamp',
+      '2023-12-31': 'DateString',
+
+      // Array element mappings
+      'email': 'ContactTypeEmail',
+      'phone': 'ContactTypePhone',
+      'address': 'ContactTypeAddress',
+      'login': 'ActivityTypeLogin',
+      'purchase': 'ActivityTypePurchase',
+      'logout': 'ActivityTypeLogout',
+
+      // Property mappings
+      'email_address': 'userEmail',
+      'first_name': 'firstName',
+      'last_name': 'lastName',
+      'is_active': 'isActive',
+      'created_at_timestamp': 'createdAt',
+
+      // Nested property mappings
+      'profile_data.age': 'userAge',
+      'profile_data.is_verified': 'isVerified',
+      'settings_config.theme_name': 'theme',
+      'settings_config.notifications_enabled': 'notificationsEnabled',
+
+      // Special character keys
+      '': 'EmptyKey',
+      '123numbers': 'NumericKey',
+      'with-dash': 'dashKey',
+      'with_underscore': 'underscoreKey',
+      'with space': 'spaceKey',
+
+      // Array values
+      'sms': 'SmsPreference',
+      'push': 'PushPreference',
+      'dark': 'DarkTheme',
+      'high': 'HighPrivacy'
+    }
+  }));
+
+  console.log('\n=== Example 26: Edge Cases and Error Handling ===');
+
+  // Test invalid interface name
+  console.log('Invalid interface name (should throw error):');
+  try {
+    JsonToTsConverter.convert({ test: 123 }, '123invalid', 'root');
+  } catch (error: any) {
+    console.log('Error caught:', error.message);
+  }
+
+  // Test invalid JSON string
+  console.log('\nInvalid JSON string:');
+  console.log(JsonToTsConverter.convert('{ invalid json }', 'InvalidJson', 'root'));
+
+  // Test null/undefined inputs
+  console.log('\nNull input:');
+  console.log(JsonToTsConverter.convert(null, 'NullInput', 'root'));
+
+  console.log('\nUndefined input:');
+  console.log(JsonToTsConverter.convert(undefined, 'UndefinedInput', 'root'));
+
+  // Test empty inputs
+  console.log('\nEmpty string:');
+  console.log(JsonToTsConverter.convert('', 'EmptyString', 'root'));
+
+  console.log('\nWhitespace only:');
+  console.log(JsonToTsConverter.convert('   \t\n   ', 'Whitespace', 'root'));
+
+  // Test non-object roots with all options
+  console.log('\n=== Example 27: Non-Object Roots with All Options ===');
+  console.log('String root with options:');
+  console.log(JsonToTsConverter.convert("test", 'StringRoot', 'root', {
+    arrayMaxTupleSize: 5,
+    arrayMinTupleSize: 2,
+    strict: true,
+    propertyCase: 'camel',
+    typeMap: { 'string': 'MyStringType' }
+  }));
+
+  console.log('\nNumber root with options:');
+  console.log(JsonToTsConverter.convert(42, 'NumberRoot', 'root', {
+    arrayMaxTupleSize: 5,
+    arrayMinTupleSize: 2,
+    strict: true,
+    propertyCase: 'camel',
+    typeMap: { 'number': 'MyNumberType' }
+  }));
+
+  console.log('\nBoolean root with options:');
+  console.log(JsonToTsConverter.convert(true, 'BooleanRoot', 'root', {
+    arrayMaxTupleSize: 5,
+    arrayMinTupleSize: 2,
+    strict: true,
+    propertyCase: 'camel',
+    typeMap: { 'boolean': 'MyBooleanType' }
+  }));
+
+  console.log('\nArray root with options:');
+  console.log(JsonToTsConverter.convert([1, 2, 3, 4, 5], 'ArrayRoot', 'root', {
+    arrayMaxTupleSize: 5,
+    arrayMinTupleSize: 2,
+    strict: true,
+    propertyCase: 'camel',
+    typeMap: { 'number': 'MyNumberType' }
+  }));
+
+  console.log('\n=== Example 28: Performance and Stress Testing ===');
+
+  // Very large nested structure
+  const generateLargeStructure = (depth: number, width: number): any => {
+    if (depth === 0) {
+      return { value: `leaf_${Math.random()}` };
+    }
+
+    const obj: any = {};
+    for (let i = 0; i < width; i++) {
+      obj[`prop_${i}`] = generateLargeStructure(depth - 1, Math.max(1, width / 2));
+    }
+    obj[`array_${depth}`] = Array.from({ length: width }, (_, j) => ({ item: j, data: `item_${j}` }));
+    return obj;
+  };
+
+  const stressTestJson = generateLargeStructure(4, 5);
+
+  console.log('Large structure with all options:');
+  console.log(JsonToTsConverter.convert(stressTestJson, 'StressTest', 'all', {
+    arrayMaxTupleSize: 10,
+    arrayMinTupleSize: 3,
+    strict: true,
+    propertyCase: 'lower_snake',
+    typeMap: {
+      'string': 'LargeString',
+      'number': 'LargeNumber',
+      'leaf': 'LeafType'
+    }
+  }));
+
+  console.log('\n=== Example 29: Property Case Transformation with Special Characters ===');
+  const specialPropertyCaseJson = {
+    "NormalProperty": "value1",
+    "UPPER_CASE": "value2",
+    "lower_case": "value3",
+    "mixedCASE": "value4",
+    "with-dash": "value5",
+    "with_underscore": "value6",
+    "with space": "value7",
+    "with.dot": "value8",
+    "123starts": "value9",
+    "": "value10",
+    "$special": "value11",
+    "@mention": "value12",
+    "#hash": "value13"
+  };
+
+  console.log('Original:');
+  console.log(JsonToTsConverter.convert(specialPropertyCaseJson, 'OriginalProps', 'none', {
+    propertyCase: 'original'
+  }));
+
+  console.log('\nCamel case:');
+  console.log(JsonToTsConverter.convert(specialPropertyCaseJson, 'CamelProps', 'none', {
+    propertyCase: 'camel'
+  }));
+
+  console.log('\nLower snake case:');
+  console.log(JsonToTsConverter.convert(specialPropertyCaseJson, 'SnakeProps', 'none', {
+    propertyCase: 'lower_snake'
+  }));
+
+  console.log('\nUpper snake case:');
+  console.log(JsonToTsConverter.convert(specialPropertyCaseJson, 'UpperSnakeProps', 'none', {
+    propertyCase: 'upper_snake'
+  }));
+
+  console.log('\nPascal case:');
+  console.log(JsonToTsConverter.convert(specialPropertyCaseJson, 'PascalProps', 'none', {
+    propertyCase: 'pascal'
+  }));
+
+  console.log('\nKebab case:');
+  console.log(JsonToTsConverter.convert(specialPropertyCaseJson, 'KebabProps', 'none', {
+    propertyCase: 'kebab'
+  }));
+
+  console.log('\n=== Example 30: Complete Feature Matrix Test ===');
+  const matrixTestJson = {
+    id: "test-uuid-123",
+    user_name: "test_user",
+    is_active: true,
+    created_date: "2023-01-01",
+    items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    mixed_data: ["string", 42, true, null, { nested: "object" }, [1, 2, 3]],
+    nested_config: {
+      setting_one: "value1",
+      setting_two: "value2",
+      nested_more: {
+        deep_property: "deep_value",
+        deep_array: [true, false, null, true, false],
+        deep_nested: {
+          final_string: "final",
+          final_number: 999,
+          final_boolean: false
+        }
+      }
+    }
+  };
+
+  // Test all combinations
+  const exportTypes: ('root' | 'all' | 'none')[] = ['root', 'all', 'none'];
+  const propertyCases: ('original' | 'camel' | 'lower_snake' | 'upper_snake' | 'pascal' | 'kebab')[] =
+    ['original', 'camel', 'lower_snake', 'upper_snake', 'pascal', 'kebab'];
+
+  for (const exportType of exportTypes) {
+    for (const propertyCase of propertyCases) {
+      console.log(`\n--- Export: ${exportType}, Case: ${propertyCase}, Strict: true ---`);
+      console.log(JsonToTsConverter.convert(matrixTestJson, `Test_${exportType}_${propertyCase}`, exportType, {
+        arrayMaxTupleSize: 10,
+        arrayMinTupleSize: 3,
+        strict: true,
+        propertyCase: propertyCase,
+        typeMap: {
+          'string': 'MyString',
+          'number': 'MyNumber',
+          'boolean': 'MyBoolean',
+          'test-uuid-123': 'TestUUID',
+          'test_user': 'TestUser',
+          'value1': 'SettingValue',
+          'value2': 'AnotherSetting',
+          'deep_value': 'DeepValue'
+        }
+      }));
+    }
+  }
 }
 
 run();

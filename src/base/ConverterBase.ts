@@ -4,45 +4,11 @@
  * @see https://github.com/blacksmoke26
  */
 
-/**
- * Represents the export strategy for generated TypeScript interfaces.
- * - 'all': Export all generated interfaces
- * - 'root': Export only the root interface
- * - 'none': No exports (interface definitions only)
- */
-export type ExportType = 'all' | 'root' | 'none';
+import StringUtils from '~/utils/StringUtils';
+import ConverterUtils from '~/utils/ConverterUtils';
 
-/**
- * Configuration options for JSON to TypeScript conversion.
- * Extensible interface for future converter options.
- */
-export interface ConvertOptions {
-  /**
-   * Maximum number of items to convert to tuple type.
-   * If array length exceeds this value, returns array type instead.
-   * @default 10
-   */
-  arrayMaxTupleSize?: number;
-
-  /**
-   * Minimum number of items required to create a tuple type.
-   * If array length is less than this value, returns array type instead.
-   * @default 2
-   */
-  arrayMinTupleSize?: number;
-
-  /**
-   * Enable strict type checking for better type inference.
-   * @default false
-   */
-  strict?: boolean;
-
-  /**
-   * Custom type mapping for specific JSON structures.
-   * Allows overriding default type detection logic.
-   */
-  typeMap?: Record<string, string>;
-}
+// types
+import type { ExportType, ConvertOptions, ParseResult, CaseType } from '~/typings/global';
 
 /**
  * Error types for JSON parsing failures.
@@ -52,15 +18,6 @@ export enum JsonParseError {
   INVALID_FORMAT = 'Invalid JSON format: input does not appear to be valid JSON',
   PARSE_FAILED = 'JSON parsing failed',
   UNDEFINED_RESULT = 'Invalid JSON: parsed result is undefined'
-}
-
-/**
- * Result of JSON parsing operation.
- */
-interface ParseResult {
-  data: unknown | null;
-  error?: JsonParseError;
-  details?: string;
 }
 
 /**
@@ -93,7 +50,7 @@ export default abstract class ConverterBase {
     jsonData: string | unknown,
     interfaceName: string = 'RootObject',
     exportType: ExportType = 'root',
-    options: ConvertOptions = {}
+    options: ConvertOptions = {},
   ): string | null {
     // Validate interface name
     if (!this.isValidIdentifier(interfaceName)) {
@@ -161,7 +118,7 @@ export default abstract class ConverterBase {
       return {
         data: null,
         error: JsonParseError.INVALID_FORMAT,
-        details: `Input starts with '${trimmed[0]}', expected JSON value`
+        details: `Input starts with '${trimmed[0]}', expected JSON value`,
       };
     }
 
@@ -181,15 +138,20 @@ export default abstract class ConverterBase {
       return {
         data: null,
         error: JsonParseError.PARSE_FAILED,
-        details
+        details,
       };
     }
+  }
+
+  protected toPropertyName(name: string, caseType: CaseType = 'original'): string {
+    return ConverterUtils.suggestPropertyName(StringUtils.formatName(name, caseType));
   }
 
   /**
    * Protected constructor to enforce factory pattern usage.
    */
-  protected constructor() {}
+  protected constructor() {
+  }
 
   /**
    * Converts a JSON object into TypeScript interface definitions.
@@ -204,6 +166,6 @@ export default abstract class ConverterBase {
   protected abstract convertJson(
     jsonData: unknown,
     rootInterfaceName: string,
-    exportType?: ExportType
+    exportType?: ExportType,
   ): string;
 }
