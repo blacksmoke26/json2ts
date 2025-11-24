@@ -134,7 +134,7 @@ export interface Sample2 {
       }[];
       investments: {
         retirement: {
-          '401k': number;
+          "401k": number;
           ira: number;
           rothIRA: number;
         };

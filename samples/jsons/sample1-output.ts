@@ -183,7 +183,7 @@ interface Stocks {
 }
 
 interface Retirement {
-  '401k': number;
+  "401k": number;
   ira: number;
   rothIRA: number;
 }
