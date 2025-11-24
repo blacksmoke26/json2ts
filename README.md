@@ -1,6 +1,6 @@
 # JSON to TypeScript Interface Converter 
 
-A powerful tool that automatically generates TypeScript interfaces 
+A powerful tool that automatically generates TypeScript interfaces
 from JSON objects, making type-safe development easier and more efficient.
 
 ## Features ✨
@@ -18,6 +18,33 @@ from JSON objects, making type-safe development easier and more efficient.
 - 📝 Support for both file and direct text input
 - 🔢 Intelligent type inference for numbers, strings, booleans, and null values
 - 🔌 Read JSON directly from stdin for pipeline operations
+- 🔢 **Smart Array Type Detection**: Automatically infers array types including:
+  - Primitive arrays (e.g., `string[]`, `number[]`)
+  - Mixed-type tuples (e.g., `[string, number, boolean]`)
+  - Object arrays (e.g., `User[]`)
+  - Nested arrays with proper type preservation
+- 📐 **Tuple Generation**: Converts fixed-size arrays with mixed types to TypeScript tuples when:
+  - Array length is between `arrayMinTupleSize` (default: 2) and `arrayMaxTupleSize` (default: 10)
+  - Elements have different types (e.g., `[1, "text", true]` → `[number, string, boolean]`)
+- 🎯 **Advanced Type Translation** *(for `JavaScript` conversion only)*:
+  - Null values → `null` type (not `any`)
+  - Undefined values → `undefined` type
+  - Symbols → `symbol` type
+  - BigInt → `bigint` type
+  - Functions → `function` type
+  - Dates/Regex → `object` type (with proper handling)
+- ⚙️ **Configurable Array Handling**:
+  - `arrayMaxTupleSize`: Maximum array length for tuple conversion (default: `10`)
+  - `arrayMinTupleSize`: Minimum array length for tuple conversion (default: `2`)
+  - Large arrays automatically fall back to generic array types
+- 🔄 **Nested Structure Support**:
+  - Deeply nested objects with proper interface separation
+  - Arrays of objects with referenced interfaces
+  - Mixed nested structures (objects containing arrays, arrays containing objects)
+- 🛡️ **Type Safety**:
+  - Preserves optional properties (`?:`) from JSON undefined values
+  - Handles nullable types with union syntax (`| null`)
+  - Maintains readonly constraints where applicable
 
 ## Command Line Interface 💻
 
@@ -40,7 +67,7 @@ yarn global add @junaidatari/json2ts  # Yarn
 | `-t, --text`   | `string` | Raw JSON string to convert               | Required*      |
 | `-o, --output` | `string` | Output file path                         | Prints to console |
 | `-n, --name`   | `string` | Root interface name                      | `RootObject`   |
-| `-l, --flat`   | `boolean`| Generate flattened interface             | `false`        |
+| `-l, --flat`   | `boolean`| Generate flattened interface             | -              |
 | `-e, --export` | `string` | Export type: `a`=all, `r`=root, `n`=none | `r` (root)     |
 
 *Either `--file` or `--text` must be provided or pipe through to read std input.
@@ -389,23 +416,30 @@ async function handleApiResponse() {
 
 ### Methods
 
-#### `JsonToTsConverter.convert(json, name?, export?)`
-#### `JsonToFlattenedTsConverter.convert(json, name?, export?)`
+#### `JsonToTsConverter.convert(json, name?, export?, options?)`
+
+#### `JsonToFlattenedTsConverter.convert(json, name?, export?, options?)`
 
 Converts JSON to TypeScript interfaces.
 
 **Parameters:**
+
 - `json`: JSON object or string to convert
 - `name`: Root interface name (default: `'RootObject'`)
 - `export`: Export mode (`'all'`, `'root'`, `'none'`) (default: `'all'`)
+- `options`: Configuration options for array handling (optional)
 
 **Returns:** Generated TypeScript interfaces string
 
 **Notes:**
+
 - Export modes:
   - `'all'`: All interfaces exported
   - `'root'`: Only root interface exported
   - `'none'`: No interfaces exported
+- Options include:
+  - `arrayMaxTupleSize`: Maximum array length for tuple conversion (default: `10`)
+  - `arrayMinTupleSize`: Minimum array length for tuple conversion (default: `2`)
 
 ## Contributing 🤝
 
@@ -425,6 +459,7 @@ cd json2ts
 npm install
 npm run dev
 npm run dev:flat
+npm run dev:ary
 ```
 
 ## License 📄

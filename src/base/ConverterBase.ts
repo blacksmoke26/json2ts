@@ -13,6 +13,27 @@
 export type ExportType = 'all' | 'root' | 'none';
 
 /**
+ * Configuration options for JSON to TypeScript conversion.
+ *
+ * @interface ConvertOptions
+ */
+export interface ConvertOptions {
+  /**
+   * Maximum number of items to convert to tuple type.
+   * If array length exceeds this value, returns array type instead.
+   * @default 10
+   */
+  arrayMaxTupleSize?: number;
+
+  /**
+   * Minimum number of items required to create a tuple type.
+   * If array length is less than this value, returns array type instead.
+   * @default 2
+   */
+  arrayMinTupleSize?: number;
+}
+
+/**
  * Abstract base class for JSON to TypeScript interface converters.
  * Provides common functionality for parsing JSON and converting it to TypeScript interfaces.
  */
@@ -29,12 +50,22 @@ export default abstract class ConverterBase {
    * @param exportType Determines the export strategy for the generated interfaces.
    *                   'all' exports all interfaces, 'root' exports only the root interface,
    *                   'none' generates no exports. Defaults to 'all'.
+   * @param options Configuration options for the conversion process, including array
+   *                tuple size constraints and other conversion settings.
    * @returns A formatted string containing the complete TypeScript interface definition.
    *          The interface will include all nested objects flattened into the main definition.
    *          Returns null if the input cannot be parsed or converted.
    * @throws {Error} If the input is not a valid JSON object (null, primitive, or undefined).
+   * @example
+   * ```typescript
+   * const json = '{"name": "John", "age": 30}';
+   * const interface = ConverterBase.convert(json, 'Person', 'all', {
+   *   arrayMaxTupleSize: 5,
+   *   arrayMinTupleSize: 2
+   * });
+   * ```
    */
-  public static convert(jsonData: string | unknown, interfaceName?: string, exportType?: ExportType): string | null {
+  public static convert(jsonData: string | unknown, interfaceName?: string, exportType?: ExportType, options?: ConvertOptions): string | null {
     throw new Error('No implemented yet');
   }
 

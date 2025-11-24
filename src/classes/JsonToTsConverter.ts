@@ -4,21 +4,25 @@
  * @see https://github.com/blacksmoke26
  */
 
-import ConverterBase, { ExportType } from '~/base/ConverterBase';
+import ConverterBase, { ConvertOptions, ExportType } from '~/base/ConverterBase';
+import ConverterUtils from '~/utils/ConverterUtils';
 
 /**
- * Converts JSON data into TypeScript interface definitions.
+ * Converts JSON data into TypeScript interface definitions with advanced type inference.
  *
  * This class provides comprehensive functionality to analyze JSON objects and generate
- * corresponding TypeScript interface definitions. It supports nested objects, arrays,
- * primitive types, and handles circular references to prevent infinite recursion.
+ * corresponding TypeScript interface definitions with intelligent type detection.
+ * It supports nested objects, arrays, primitive types, and handles circular references
+ * to prevent infinite recursion.
  *
- * Features:
- * - Automatic interface naming based on object keys
- * - Support for nested objects and arrays
- * - Circular reference detection
- * - Configurable export modes (root, all, none)
- * - Type inference for JSON primitives
+ * Key Features:
+ * - Intelligent interface naming based on object keys and structure
+ * - Full support for nested objects and arrays
+ * - Circular reference detection to prevent infinite loops
+ * - Flexible export modes (root, all, none) for different use cases
+ * - Automatic type inference for JSON primitives
+ * - Advanced array type detection with tuple types for mixed arrays
+ * - Configurable array tuple size limits for optimal type representation
  *
  * @example
  * ```typescript
@@ -30,9 +34,13 @@ import ConverterBase, { ExportType } from '~/base/ConverterBase';
  *     street: "123 Main St",
  *     city: "New York",
  *     coordinates: [40.7128, -74.0060]
- *   }
+ *   },
+ *   tags: ["user", "active", 2025]
  * };
- * const tsInterface = JsonToTsConverter.convert(json, "User", "root");
+ * const tsInterface = JsonToTsConverter.convert(json, "User", "root", {
+ *   arrayMaxTupleSize: 5,
+ *   arrayMinTupleSize: 2
+ * });
  * console.log(tsInterface);
  * ```
  */
@@ -55,6 +63,14 @@ export default class JsonToTsConverter extends ConverterBase {
   private visitedObjects = new WeakSet<object>();
 
   /**
+   * Creates an instance of JsonToFlattenedTsConverter.
+   * @param options Configuration options for the conversion process.
+   */
+  private constructor(private options: ConvertOptions = {}) {
+    super();
+  }
+
+  /**
    * Converts JSON data into TypeScript interface strings.
    *
    * Static entry point that parses input JSON and generates corresponding
@@ -63,6 +79,7 @@ export default class JsonToTsConverter extends ConverterBase {
    * @param jsonData - JSON object or string to convert
    * @param interfaceName - Name for the root interface (default: 'RootObject')
    * @param exportType - Export mode: 'root', 'all', or 'none' (default: 'root')
+   * @param options - Configuration options for the conversion process
    * @returns Generated TypeScript interface string or null if parsing fails
    *
    * @example
@@ -70,17 +87,18 @@ export default class JsonToTsConverter extends ConverterBase {
    * const result = JsonToTsConverter.convert(
    *   '{"name": "John", "age": 30}',
    *   'Person',
-   *   'all'
+   *   'all',
+   *   { arrayMaxTupleSize: 5, arrayMinTupleSize: 2 }
    * );
    * ```
    */
-  public static convert(jsonData: unknown | string, interfaceName: string = 'RootObject', exportType: ExportType = 'root'): string | null {
+  public static convert(jsonData: unknown | string, interfaceName: string = 'RootObject', exportType: ExportType = 'root', options: ConvertOptions = {}): string | null {
     const parsed = this.parseJson(jsonData);
 
     if (!parsed) return null;
 
     return (exportType === 'root' ? 'export ' : '')
-      + new JsonToTsConverter().convertJson(parsed, interfaceName, exportType);
+      + new JsonToTsConverter(options).convertJson(parsed, interfaceName, exportType);
   }
 
   /**
@@ -151,7 +169,8 @@ export default class JsonToTsConverter extends ConverterBase {
    *
    * Analyzes value and returns appropriate TypeScript type. Handles all JSON
    * primitives, arrays, and objects. For objects, triggers new interface generation
-   * and returns the interface name.
+   * and returns the interface name. For arrays, uses ArrayUtil to detect appropriate
+   * type including tuple types for mixed arrays.
    *
    * @param value - Value to analyze
    * @param parentKey - Property key used for naming child interfaces
@@ -160,14 +179,25 @@ export default class JsonToTsConverter extends ConverterBase {
    */
   private getType(value: any, parentKey: string, appendExport: boolean): string {
     if (value === null) return 'null';
-    
+
     if (Array.isArray(value)) {
-      if (value.length === 0) {
-        return 'any[]';
+      // Use ArrayUtil to detect the appropriate array type
+      const arrayType = ConverterUtils.detectTypeFromArray(
+        value,
+        this.options.arrayMaxTupleSize ?? 10,
+        this.options.arrayMinTupleSize ?? 2
+      );
+
+      // If the array contains objects, we need to generate interfaces for them
+      const hasObjects = value.some(v => typeof v === 'object' && v !== null && !Array.isArray(v));
+      if (hasObjects) {
+        const firstObject = value.find(v => typeof v === 'object' && v !== null && !Array.isArray(v));
+        const interfaceName = this.capitalize(parentKey);
+        this.generateInterface(firstObject, interfaceName, appendExport);
+        return `${interfaceName}[]`;
       }
-      // Use first element type as representative for homogeneous arrays
-      const elementType = this.getType(value[0], this.capitalize(parentKey), appendExport);
-      return `${elementType}[]`;
+
+      return arrayType;
     }
 
     if (typeof value === 'object') {

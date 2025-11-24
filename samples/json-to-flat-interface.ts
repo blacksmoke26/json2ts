@@ -20,7 +20,7 @@ import { JsonToFlattenedTsConverter } from '../src/index';
  * models, repositories, and configuration files.
  */
 async function run(): Promise<void> {
-  const json = fs.readFileSync(__dirname + '/jsons/sample.json', { encoding: 'utf-8' });
+  const json = fs.readFileSync(__dirname + '/jsons/sample2.json', { encoding: 'utf-8' });
 
   const output = JsonToFlattenedTsConverter.convert(json, 'Person', 'all');
 
