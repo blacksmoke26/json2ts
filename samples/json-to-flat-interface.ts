@@ -439,6 +439,387 @@ async function run(): Promise<void> {
     }
   });
   console.log(complexTypeMapOutput);
+
+  // Example 21: Comprehensive arrayMaxTupleSize testing
+  console.log('\n--- Example 21: Array Max Tuple Size Testing ---');
+  const maxTupleJson = {
+    tinyArray: [1],
+    smallArray: [1, 2],
+    mediumArray: [1, 2, 3],
+    largeArray: [1, 2, 3, 4, 5],
+    hugeArray: new Array(15).fill(0).map((_, i) => i),
+    mixedArray: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+    nestedArrays: {
+      level1: [1, 2],
+      level2: [1, 2, 3, 4],
+      level3: [1, 2, 3, 4, 5, 6, 7, 8]
+    }
+  };
+  console.log('Max tuple size = 2:');
+  console.log(JsonToFlattenedTsConverter.convert(maxTupleJson, 'MaxTuple2', 'root', { arrayMaxTupleSize: 2 }));
+  console.log('\nMax tuple size = 5:');
+  console.log(JsonToFlattenedTsConverter.convert(maxTupleJson, 'MaxTuple5', 'root', { arrayMaxTupleSize: 5 }));
+  console.log('\nMax tuple size = 20:');
+  console.log(JsonToFlattenedTsConverter.convert(maxTupleJson, 'MaxTuple20', 'root', { arrayMaxTupleSize: 20 }));
+
+  // Example 22: Comprehensive arrayMinTupleSize testing
+  console.log('\n--- Example 22: Array Min Tuple Size Testing ---');
+  const minTupleJson = {
+    single: [1],
+    double: [1, 2],
+    triple: [1, 2, 3],
+    quad: [1, 2, 3, 4],
+    many: [1, 2, 3, 4, 5, 6]
+  };
+  console.log('Min tuple size = 1:');
+  console.log(JsonToFlattenedTsConverter.convert(minTupleJson, 'MinTuple1', 'root', { arrayMinTupleSize: 1 }));
+  console.log('\nMin tuple size = 3:');
+  console.log(JsonToFlattenedTsConverter.convert(minTupleJson, 'MinTuple3', 'root', { arrayMinTupleSize: 3 }));
+  console.log('\nMin tuple size = 5:');
+  console.log(JsonToFlattenedTsConverter.convert(minTupleJson, 'MinTuple5', 'root', { arrayMinTupleSize: 5 }));
+
+  // Example 23: Strict mode testing
+  console.log('\n--- Example 23: Strict Mode Testing ---');
+  const strictJson = {
+    stringValue: 'hello',
+    numberValue: 42,
+    booleanValue: true,
+    nullValue: null,
+    undefinedValue: undefined,
+    arrayValue: [1, 'two', true],
+    objectValue: { nested: 'value' },
+    mixedArray: [1, 'two', true, null, { obj: true }],
+    deepNested: {
+      level1: {
+        level2: {
+          level3: {
+            value: 'deep'
+          }
+        }
+      }
+    }
+  };
+  console.log('Non-strict mode (default):');
+  console.log(JsonToFlattenedTsConverter.convert(strictJson, 'NonStrict', 'root', { strict: false }));
+  console.log('\nStrict mode:');
+  console.log(JsonToFlattenedTsConverter.convert(strictJson, 'Strict', 'root', { strict: true }));
+
+  // Example 24: Comprehensive propertyCase testing
+  console.log('\n--- Example 24: Property Case Transformations ---');
+  const propertyCaseJson = {
+    'user_name': 'john',
+    'firstName': 'john',
+    'last-name': 'doe',
+    'EMAIL_ADDRESS': 'john@example.com',
+    'phoneNumber': '123-456-7890',
+    'address_line_1': '123 Main St',
+    'cityName': 'Anytown',
+    'zip-code': '12345',
+    'country_code': 'US',
+    'is_active': true,
+    'createdAt': '2023-01-01'
+  };
+  const cases = ['original', 'camel', 'lower_snake', 'pascal', 'upper_snake', 'kebab'] as const;
+  cases.forEach(caseType => {
+    console.log(`\nProperty case: ${caseType}`);
+    console.log(JsonToFlattenedTsConverter.convert(propertyCaseJson, `Case${caseType.charAt(0).toUpperCase() + caseType.slice(1)}`, 'root', { propertyCase: caseType }));
+  });
+
+  // Example 25: Complex typeMap with all value types
+  console.log('\n--- Example 25: Advanced Type Mapping ---');
+  const advancedTypeMapJson = {
+    // Primitive values
+    strValue: 'active',
+    numValue: 42,
+    boolValue: true,
+    nullValue: null,
+
+    // Array values
+    arrayValue: ['item1', 'item2', 'item3'],
+    nestedArray: [[1, 2], [3, 4]],
+
+    // Object values
+    objectValue: { key: 'value' },
+    nestedObject: {
+      level1: {
+        level2: {
+          value: 'deep'
+        }
+      }
+    },
+
+    // Mixed nested
+    complexData: {
+      users: [
+        { id: '550e8400-e29b-41d4-a716-446655440000', name: 'John', status: 'active' },
+        { id: '550e8400-e29b-41d4-a716-446655440001', name: 'Jane', status: 'inactive' }
+      ],
+      settings: {
+        theme: 'dark',
+        notifications: { email: true, sms: false },
+        metadata: { version: 1.0, enabled: true }
+      }
+    },
+
+    // Special values
+    dateValue: '2023-12-01T10:00:00Z',
+    uuidValue: '550e8400-e29b-41d4-a716-446655440000',
+    enumValue: 'published',
+    unionValue: 'admin'
+  };
+  const advancedTypeMapOutput = JsonToFlattenedTsConverter.convert(advancedTypeMapJson, 'AdvancedTypeMap', 'root', {
+    typeMap: {
+      // Primitive type mappings
+      'active': 'UserStatus',
+      '42': 'Age',
+      'true': 'Flag',
+
+      // Array type mappings
+      'item1': 'FirstItem',
+      'item2': 'SecondItem',
+      'item3': 'ThirdItem',
+
+      // Object field mappings
+      'key': 'PropertyKey',
+      'value': 'PropertyValue',
+
+      // Nested mappings
+      'level1': 'FirstLevel',
+      'level2': 'SecondLevel',
+      'deep': 'DeepValue',
+
+      // Complex nested mappings
+      '550e8400-e29b-41d4-a716-446655440000': 'UUID',
+      '550e8400-e29b-41d4-a716-446655440001': 'UUID',
+      'John': 'UserName',
+      'Jane': 'UserName',
+
+      // Special type mappings
+      '2023-12-01T10:00:00Z': 'Timestamp',
+      'published': 'PublicationStatus',
+      'admin': 'RoleType',
+
+      // Property name mappings
+      'theme': 'ThemeSetting',
+      'notifications': 'NotificationSettings',
+      'email': 'EmailNotification',
+      'sms': 'SMSNotification',
+      'metadata': 'SystemMetadata',
+      'version': 'VersionNumber',
+      'enabled': 'EnabledFlag'
+    }
+  });
+  console.log(advancedTypeMapOutput);
+
+  // Example 26: Edge cases with all options combined
+  console.log('\n--- Example 26: Edge Cases with All Options ---');
+  const edgeCaseJson = {
+    // Empty and null values
+    emptyObject: {},
+    emptyArray: [],
+    nullValue: null,
+    undefinedValue: undefined,
+
+    // Extreme array sizes
+    singleElement: [1],
+    hugeArray: new Array(100).fill(0).map((_, i) => i),
+
+    // Circular reference
+    circular: { name: 'test' },
+
+    // Deeply nested
+    deeplyNested: {
+      l1: { l2: { l3: { l4: { l5: { l6: 'deep' } } } } }
+    },
+
+    // Mixed property names
+    'camelCase': 'value1',
+    'snake_case': 'value2',
+      'PascalCase': 'value3',
+    'kebab-case': 'value4',
+    'UPPER_SNAKE': 'value5',
+
+    // Special characters in keys
+    'with-space': 'space',
+    'with.dots': 'dots',
+    'with-underscores': 'underscores',
+    'with$dollar': 'dollar',
+    '123numbers': 'numbers',
+    'mixed-Case_With$Everything': 'mixed'
+  };
+
+  // Add circular reference
+  (edgeCaseJson.circular as any).self = edgeCaseJson.circular;
+
+  const edgeCaseOutput = JsonToFlattenedTsConverter.convert(edgeCaseJson, 'EdgeCase', 'root', {
+    arrayMaxTupleSize: 3,
+    arrayMinTupleSize: 2,
+    strict: true,
+    propertyCase: 'camel',
+    typeMap: {
+      'test': 'TestValue',
+      'deep': 'DeepValue',
+      'value1': 'FirstValue',
+      'value2': 'SecondValue',
+      'value3': 'ThirdValue',
+      'value4': 'FourthValue',
+      'value5': 'FifthValue',
+      'space': 'SpaceValue',
+      'dots': 'DotsValue',
+      'underscores': 'UnderscoresValue',
+      'dollar': 'DollarValue',
+      'numbers': 'NumbersValue',
+      'mixed': 'MixedValue'
+    }
+  });
+  console.log(edgeCaseOutput);
+
+  // Example 27: Performance testing with large data
+  console.log('\n--- Example 27: Performance Testing with Large Data ---');
+  const largeJson = {
+    users: new Array(50).fill(0).map((_, i) => ({
+      id: `user-${i}`,
+      name: `User ${i}`,
+      email: `user${i}@example.com`,
+      profile: {
+        age: 20 + (i % 50),
+        settings: {
+          theme: i % 2 === 0 ? 'dark' : 'light',
+          notifications: {
+            email: i % 3 === 0,
+            push: i % 2 === 0,
+            sms: i % 4 === 0
+          }
+        }
+      },
+      activity: {
+        loginCount: Math.floor(Math.random() * 1000),
+        lastLogin: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+        sessions: new Array(Math.floor(Math.random() * 10) + 1).fill(0).map((_, j) => ({
+          id: `session-${i}-${j}`,
+          duration: Math.floor(Math.random() * 86400),
+          userAgent: `Browser ${j}`
+        }))
+      }
+    })),
+    metadata: {
+      total: 50,
+      page: 1,
+      timestamp: new Date().toISOString(),
+      filters: ['active', 'verified'],
+      sorts: ['name', 'email']
+    }
+  };
+
+  console.time('Large data conversion');
+  const largeOutput = JsonToFlattenedTsConverter.convert(largeJson, 'LargeDataSet', 'root', {
+    arrayMaxTupleSize: 5,
+    arrayMinTupleSize: 2,
+    strict: false,
+    propertyCase: 'camel'
+  });
+  console.timeEnd('Large data conversion');
+  console.log('Generated', largeOutput?.split?.('\n')?.length, 'lines of TypeScript');
+
+  // Example 28: All options combined in complex scenario
+  console.log('\n--- Example 28: All Options Combined ---');
+  const allOptionsJson = {
+    api: {
+      version: 'v2',
+      endpoint: 'https://api.example.com',
+      authentication: {
+        type: 'bearer',
+        token_expires_in: 3600
+      },
+      resources: {
+        users: {
+          endpoint: '/users',
+          methods: ['GET', 'POST', 'PUT', 'DELETE'],
+          schemas: {
+            create: {
+              type: 'object',
+              properties: {
+                user_name: { type: 'string', required: true },
+                email_address: { type: 'string', format: 'email' },
+                is_active: { type: 'boolean', default: true },
+                profile_settings: {
+                  type: 'object',
+                  properties: {
+                    theme_preference: { enum: ['light', 'dark', 'auto'] },
+                    notification_settings: {
+                      email_notifications: { type: 'boolean' },
+                      push_notifications: { type: 'boolean' },
+                      sms_notifications: { type: 'boolean' }
+                    }
+                  }
+                }
+              }
+            },
+            response: {
+              type: 'array',
+              items: {
+                user_id: { type: 'string', format: 'uuid' },
+                created_at: { type: 'string', format: 'date-time' },
+                updated_at: { type: 'string', format: 'date-time' },
+                last_login_at: { type: 'string', format: 'date-time' }
+              }
+            }
+          }
+        },
+        posts: {
+          endpoint: '/posts',
+          pagination: {
+            type: 'cursor',
+            limit: 20,
+            max_limit: 100
+          },
+          filters: {
+            status: { enum: ['draft', 'published', 'archived'] },
+            author_id: { type: 'string' },
+            tags: { type: 'array', items: { type: 'string' } },
+            date_range: {
+              start_date: { type: 'string', format: 'date' },
+              end_date: { type: 'string', format: 'date' }
+            }
+          }
+        }
+      },
+      webhooks: {
+        events: ['user.created', 'user.updated', 'post.published'],
+        config: {
+          retry_attempts: 3,
+          timeout: 30000,
+          signature_header: 'X-Signature'
+        }
+      }
+    }
+  };
+
+  const allOptionsOutput = JsonToFlattenedTsConverter.convert(allOptionsJson, 'CompleteAPIDocumentation', 'root', {
+    arrayMaxTupleSize: 4,
+    arrayMinTupleSize: 2,
+    strict: true,
+    propertyCase: 'lower_snake',
+    typeMap: {
+      'v2': 'APIVersion',
+      'bearer': 'BearerAuth',
+      'GET': 'HTTPMethod',
+      'POST': 'HTTPMethod',
+      'PUT': 'HTTPMethod',
+      'DELETE': 'HTTPMethod',
+      'light': 'ThemeOption',
+      'dark': 'ThemeOption',
+      'auto': 'ThemeOption',
+      'draft': 'PostStatus',
+      'published': 'PostStatus',
+      'archived': 'PostStatus',
+      'cursor': 'CursorPagination',
+      'user.created': 'WebhookEvent',
+      'user.updated': 'WebhookEvent',
+      'post.published': 'WebhookEvent'
+    }
+  });
+  console.log(allOptionsOutput);
 }
 
 run().catch(console.error);
