@@ -16,16 +16,24 @@ from JSON objects, making type-safe development easier and more efficient.
 - 📊 Handle complex nested structures with arrays of objects
 - 🚀 Fast and lightweight CLI for quick conversions
 - 📝 Support for both file and direct text input
-- 🔢 Intelligent type inference for numbers, strings, booleans, and null values
-- 🔌 Read JSON directly from stdin for pipeline operations
+- 🔢 Intelligent type inference for Numbers, Strings, Booleans, and null values
+- 🔌 Read JSON output directly from the *stdin* for pipeline operations
 - ✏️ Added property name suggestion and correction logic based on strict TypeScript identifier rules
+- 🐪 **Property Case Transformation**: Convert property names to various case formats:
+  - `c` - camelCase (`userName`)
+  - `l` - lower_snake_case (`user_name`)
+  - `o` - preserve original (default)
+  - `p` - PascalCase (`UserName`)
+  - `u` - UPPER_SNAKE_CASE (`USER_NAME`)
+  - `k` - kebab-case (`user-name`)
+- 🛡️ **Strict Mode**: Generate strict TypeScript types with exact property matching when enabled via `--strict` flag
 - 🔢 **Smart Array Type Detection**: Automatically infers array types including:
   - Primitive arrays (e.g., `string[]`, `number[]`)
   - Mixed-type tuples (e.g., `[string, number, boolean]`)
   - Object arrays (e.g., `User[]`)
   - Nested arrays with proper type preservation
 - 📐 **Tuple Generation**: Converts fixed-size arrays with mixed types to TypeScript tuples when:
-  - Array length is between `arrayMinTupleSize` (default: 2) and `arrayMaxTupleSize` (default: 10)
+  - Array length is between `arrayMinTupleSize` (default: `2`) and `arrayMaxTupleSize` (default: `10`)
   - Elements have different types (e.g., `[1, "text", true]` → `[number, string, boolean]`)
 - ⚙️ **Configurable Array Handling**:
   - `arrayMaxTupleSize`: Maximum array length for tuple conversion (default: `10`)
@@ -74,8 +82,10 @@ yarn global add @junaidatari/json2ts  # Yarn
 | `-n, --name`   | `string` | Root interface name                      | `RootObject`   |
 | `-l, --flat`   | `boolean`| Generate flattened interface             | -              |
 | `-e, --export` | `string` | Export type: `a`=all, `r`=root, `n`=none | `r` *(root)* |
+| `-pc, --property-case` | `string` | Property case transformation: `c`=camelCase, `l`=lower_snake_case, `o`=original, `p`=PascalCase, `u`=UPPER_SNAKE_CASE, `k`=kebab-case | `o` *(original)* |
+| `-s, --strict` | `boolean`| Generate strict TypeScript types with exact property matching | - |
 
-*Either `--file` or `--text` must be provided or pipe through to read directly from stdin.
+Either `--file` or `--text` must be provided or pipe through to read directly from the stdin.
 
 ### Examples 📝
 
@@ -111,6 +121,45 @@ json2ts -f input.json -o types.ts -n Response -e a
 
 ```bash
 json2ts -f input.json -o types.ts -n Response --export n
+```
+
+#### Property case transformation
+
+```bash
+# Convert to camelCase properties
+json2ts -f input.json -o camel-types.ts --pc c
+
+# Convert to PascalCase properties
+json2ts -f input.json -o pascal-types.ts --property-case p
+
+# Convert to kebab-case properties
+json2ts -f input.json -o kebab-types.ts --property-case k
+```
+
+#### Strict mode generation
+
+```bash
+# Generate with strict type checking
+json2ts -f input.json -o strict-types.ts -n Data --strict
+```
+
+#### Combined options
+
+```bash
+# Multiple options together
+json2ts -f input.json -o output.ts -n ApiResponse -e all --property-case c --strict
+
+# Flattened with property transformation
+json2ts -f data.json -o flat.ts -n FlatData --flat --property-case l
+```
+
+#### Root-only export
+
+```bash
+# Export only root interface (default)
+json2ts -f input.json -o types.ts -n Response
+# or explicitly
+json2ts -f input.json -o types.ts -n Response -e r
 ```
 
 #### Pipeline with curl
