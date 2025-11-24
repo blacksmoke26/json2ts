@@ -2,6 +2,11 @@
 
 ## V0.0.4 - 2025-XX-XX
 
+- Exported `ConverterUtils.detectTypeFromArray()` method for smart array type detection/conversion
+- Added support for tuple type generation based on array content analysis
+- Enhanced type detection for mixed primitive values and special cases (null, undefined)
+- Added configuration options for array tuple size constraints (min/max)
+- Improved handling of complex nested structures and edge cases
 - Fix typos in documentation, version correction.
 
 ## V0.0.3 - 2025-11-22
