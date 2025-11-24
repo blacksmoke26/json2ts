@@ -97,6 +97,7 @@
   "author": "Junaid Atari (https://github.com/blacksmoke26)",
   "license": "ISC",
   "dependencies": {
+    "change-case": "^5.4.4",
     "yargs": "^18.0.0"
   },
   "devDependencies": {
