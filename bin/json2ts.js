@@ -23,7 +23,7 @@ const { JsonToTsConverter, JsonToFlattenedTsConverter } = require('../index.js')
    .parserConfiguration({
      'parse-numbers': false,
    })
-   .version('0.0.1')
+   .version('0.0.4')
    .usage('Usage: json2ts -f input.json -o output.ts')
    .option('file', {
      description: 'Path to the JSON file to be converted to TypeScript interfaces',
