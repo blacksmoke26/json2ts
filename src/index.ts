@@ -1,6 +1,7 @@
 /**
- * @fileoverview This module exports the JsonToTsConverter and JsonToFlattenedTsConverter classes.
- * These classes are responsible for converting JSON data to TypeScript interfaces and flattened TypeScript interfaces respectively.
+ * @fileoverview This module provides the main converter classes for transforming JSON data into TypeScript interfaces.
+ * It includes both standard and flattened interface generation capabilities, along with utility functions
+ * and type definitions for the conversion process.
  *
  * @author Junaid Atari <mj.atari@gmail.com>
  * @copyright 2025 Junaid Atari
@@ -9,7 +10,13 @@
  * @module JsonConverters
  */
 
+// classes
 import JsonToTsConverter from '~/classes/JsonToTsConverter';
 import JsonToFlattenedTsConverter from '~/classes/JsonToFlattenedTsConverter';
 
-export { JsonToFlattenedTsConverter, JsonToTsConverter };
+// utils
+import ConverterUtils from '~/utils/ConverterUtils';
+
+export type { ExportType, ConvertOptions } from '~/base/ConverterBase';
+
+export { JsonToFlattenedTsConverter, JsonToTsConverter, ConverterUtils };
