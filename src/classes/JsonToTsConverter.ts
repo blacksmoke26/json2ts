@@ -23,6 +23,8 @@ import ConverterUtils from '~/utils/ConverterUtils';
  * - Automatic type inference for JSON primitives
  * - Advanced array type detection with tuple types for mixed arrays
  * - Configurable array tuple size limits for optimal type representation
+ * - Strict type checking mode for more precise type inference
+ * - Custom type mapping for overriding default type detection
  *
  * @example
  * ```typescript
@@ -39,7 +41,12 @@ import ConverterUtils from '~/utils/ConverterUtils';
  * };
  * const tsInterface = JsonToTsConverter.convert(json, "User", "root", {
  *   arrayMaxTupleSize: 5,
- *   arrayMinTupleSize: 2
+ *   arrayMinTupleSize: 2,
+ *   strict: true,
+ *   typeMap: {
+ *     'timestamp': 'Date',
+ *     'uuid': 'string'
+ *   }
  * });
  * console.log(tsInterface);
  * ```
@@ -63,7 +70,7 @@ export default class JsonToTsConverter extends ConverterBase {
   private visitedObjects = new WeakSet<object>();
 
   /**
-   * Creates an instance of JsonToFlattenedTsConverter.
+   * Creates an instance of JsonToTsConverter.
    * @param options Configuration options for the conversion process.
    */
   private constructor(private options: ConvertOptions = {}) {
@@ -88,17 +95,19 @@ export default class JsonToTsConverter extends ConverterBase {
    *   '{"name": "John", "age": 30}',
    *   'Person',
    *   'all',
-   *   { arrayMaxTupleSize: 5, arrayMinTupleSize: 2 }
+   *   { arrayMaxTupleSize: 5, arrayMinTupleSize: 2, strict: true }
    * );
    * ```
    */
   public static convert(jsonData: unknown | string, interfaceName: string = 'RootObject', exportType: ExportType = 'root', options: ConvertOptions = {}): string | null {
-    const parsed = this.parseJson(jsonData);
+    return super.convert(jsonData, interfaceName, exportType, options);
+  }
 
-    if (!parsed) return null;
-
-    return (exportType === 'root' ? 'export ' : '')
-      + new JsonToTsConverter(options).convertJson(parsed, interfaceName, exportType);
+  /**
+   * Factory method to create converter instance.
+   */
+  protected static createConverter(options: ConvertOptions): ConverterBase {
+    return new JsonToTsConverter(options);
   }
 
   /**
@@ -113,14 +122,19 @@ export default class JsonToTsConverter extends ConverterBase {
    * @returns Complete TypeScript interface definitions
    */
   protected convertJson(jsonData: unknown, rootInterfaceName: string, exportType: ExportType = 'root'): string {
+    const exports = exportType !== 'none' ? 'export ' : '';
+
     if (typeof jsonData !== 'object' || jsonData === null) {
-      return `${exportType !== 'none' ? 'export ' : ''}interface ${rootInterfaceName} {\n  [p: string]: unknown;\n}`;
+      if (this.options.strict) {
+        return `${exports}type ${rootInterfaceName} = null;`;
+      }
+      return `${exports}interface ${rootInterfaceName} {\n  [p: string]: unknown;\n}`;
     }
 
     this.interfaces.clear();
     this.visitedObjects = new WeakSet<object>();
 
-    this.generateInterface(jsonData, rootInterfaceName, exportType === 'all');
+    this.generateInterface(jsonData as object, rootInterfaceName, exportType === 'all');
 
     // Reverse the order to ensure dependencies are declared before dependents
     const orderedInterfaces = Array.from(this.interfaces.entries()).reverse();
@@ -150,14 +164,13 @@ export default class JsonToTsConverter extends ConverterBase {
 
     if (this.interfaces.has(interfaceName)) return; // Interface already generated
 
-
     let interfaceBody = '';
     const keys = Object.keys(obj);
 
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, this.capitalize(key), appendExport);
-      interfaceBody += `  ${key}: ${type};\n`;
+      interfaceBody += `  ${ConverterUtils.suggestPropertyName(key)}: ${type};\n`;
     }
 
     const fullInterface = `${appendExport ? 'export ' : ''}interface ${interfaceName} {\n${interfaceBody.trimEnd()}\n}`;
@@ -178,7 +191,22 @@ export default class JsonToTsConverter extends ConverterBase {
    * @returns TypeScript type string representation
    */
   private getType(value: any, parentKey: string, appendExport: boolean): string {
-    if (value === null) return 'null';
+    // Check custom type mapping first
+    if (this.options.typeMap && typeof value !== 'object' && value !== null) {
+      // Check for value-based type mapping (e.g., specific values)
+      if (this.options.typeMap[value as string]) {
+        return this.options.typeMap[value as string];
+      }
+      // Check for type-based mapping (e.g., 'string', 'number')
+      const typeBasedMapping = this.options.typeMap[typeof value];
+      if (typeBasedMapping) {
+        return typeBasedMapping;
+      }
+    }
+
+    if (value === null) {
+      return this.options.strict ? 'null' : 'unknown';
+    }
 
     if (Array.isArray(value)) {
       // Use ArrayUtil to detect the appropriate array type
@@ -204,6 +232,20 @@ export default class JsonToTsConverter extends ConverterBase {
       const interfaceName = this.capitalize(parentKey);
       this.generateInterface(value, interfaceName, appendExport);
       return interfaceName;
+    }
+
+    // Handle strict mode for primitive types
+    if (this.options.strict) {
+      switch (typeof value) {
+        case 'string':
+          return 'string';
+        case 'number':
+          return Number.isInteger(value) ? 'number' : 'number';
+        case 'boolean':
+          return 'boolean';
+        default:
+          return 'unknown';
+      }
     }
 
     return typeof value; // 'string', 'number', 'boolean'

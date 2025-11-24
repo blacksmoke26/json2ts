@@ -97,12 +97,16 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
    * ```
    */
   public static convert(jsonData: unknown | string, interfaceName: string = 'RootObject', exportType: ExportType = 'root', options: ConvertOptions = {}): string | null {
-    const parsed = this.parseJson(jsonData);
-
-    return !parsed
-      ? null
-      : new JsonToFlattenedTsConverter(options).convertJson(parsed, interfaceName, exportType);
+    return super.convert(jsonData, interfaceName, exportType, options);
   }
+
+  /**
+   * Factory method to create converter instance.
+   */
+  protected static createConverter(options: ConvertOptions): ConverterBase {
+    return new JsonToFlattenedTsConverter(options);
+  }
+
   /**
    * Generates the TypeScript interface code from parsed JSON data.
    *
@@ -112,7 +116,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
    * @returns The complete TypeScript interface code.
    */
   protected convertJson(jsonData: unknown, interfaceName: string, exportType: ExportType = 'root'): string {
-    const exports = exportType !== 'none' ? 'exports ' : '';
+    const exports = exportType !== 'none' ? 'export ' : '';
 
     if (typeof jsonData !== 'object' || jsonData === null) {
       return exports + `interface ${interfaceName} {}`;
@@ -128,7 +132,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
 
   /**
    * Recursively generates TypeScript type definitions for objects and their properties.
-   * Inlines nested objects into the current interface definition.
+   * Embeds nested objects into the current interface definition.
    *
    * @param obj - The object or value to convert to a TypeScript type.
    * @param indentLevel - Current indentation level for formatting the output.
@@ -184,7 +188,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, indentLevel + 1);
-      body += `${nextIndent}${key}: ${type};\n`;
+      body += `${nextIndent}${ConverterUtils.suggestPropertyName(key)}: ${type};\n`;
     }
 
     // Remove object from visited set after processing
@@ -195,7 +199,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
       return '{}';
     }
 
-    // Return the inlined object definition
+    // Return the embedded object definition
     return `{\n${body.trimEnd()}\n${indent}}`;
   }
 

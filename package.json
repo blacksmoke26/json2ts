@@ -74,7 +74,6 @@
     "url": "https://github.com/blacksmoke26/json2ts/issues"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf lib && rimraf types",
     "clean:all": "npm run clean && rimraf --glob junaidatari-json2ts-*.tgz",
     "build": "npm run clean:all && tsc && tsc-alias",
@@ -82,7 +81,9 @@
     "d:pack": "npm run build && npm pack && npm run clean",
     "dev": "ts-node ./samples/json-to-interface.ts",
     "dev:flat": "ts-node ./samples/json-to-flat-interface.ts",
-    "dev:ary": "ts-node ./samples/json-to-array-primitive.ts"
+    "test": "npm run test:array && npm run test:property",
+    "test:array": "ts-node ./samples/util-detect-type-from-array.ts",
+    "test:property": "ts-node ./samples/util-suggest-property-name.ts"
   },
   "engines": {
     "node": ">= 20"

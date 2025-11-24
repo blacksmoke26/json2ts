@@ -2,6 +2,15 @@
 
 ## V0.0.4 - 2025-XX-XX
 
+- Added property name suggestion and correction logic based on strict TypeScript identifier rules
+- Added comprehensive type inference with strict mode support
+- Implemented circular reference detection to prevent infinite recursion
+- Added custom type mapping capabilities via `typeMap` option
+- Improved error handling with detailed parsing error messages
+- Resolved interface name validation issues
+- Fixed empty object and array type generation
+- Corrected export keyword placement in generated interfaces
+- Enhanced null value handling in strict mode
 - Exported `ConverterUtils.detectTypeFromArray()` method for smart array type detection/conversion
 - Added support for tuple type generation based on array content analysis
 - Enhanced type detection for mixed primitive values and special cases (null, undefined)
