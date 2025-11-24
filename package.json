@@ -1,6 +1,6 @@
 {
   "name": "@junaidatari/json2ts",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": false,
   "publishConfig": {
     "tag": "latest",
@@ -76,8 +76,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf lib && rimraf types",
-    "build": "npm run clean && tsc && tsc-alias",
+    "clean:all": "npm run clean && rimraf --glob junaidatari-json2ts-*.tgz",
+    "build": "npm run clean:all && tsc && tsc-alias",
     "prepack": "crlf --set=LF bin/json2ts.js",
+    "d:pack": "npm run build && npm pack && npm run clean",
     "dev": "ts-node ./samples/json-to-interface.ts",
     "dev:flat": "ts-node ./samples/json-to-flat-interface.ts"
   },
@@ -93,13 +95,13 @@
   "author": "Junaid Atari (https://github.com/blacksmoke26)",
   "license": "ISC",
   "dependencies": {
-    "crlf": "^1.1.1",
-    "rimraf": "^6.1.2",
     "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@types/yargs": "^17.0.35",
+    "crlf": "^1.1.1",
+    "rimraf": "^6.1.2",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
