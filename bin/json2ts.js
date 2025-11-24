@@ -46,7 +46,7 @@ const { JsonToTsConverter, JsonToFlattenedTsConverter } = require('../index.js')
      alias: 'n',
    })
   .option('export', {
-    description: 'Export type for generated interfaces: "all" (default), "root", or "none"',
+    description: 'Export type for generated interfaces: "a" (all: default), "r" (root), or "n" (none)',
     type: 'string',
     choices: ['a', 'r', 'n'],
     alias: 'e',
