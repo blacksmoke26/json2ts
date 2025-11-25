@@ -145,17 +145,8 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     const indent = this.getIndent(indentLevel);
     const nextIndent = this.getIndent(indentLevel + 1);
 
-    // Handle null values
-    if (obj === null) {
-      return 'null';
-    }
-
     // Handle arrays
-    if (Array.isArray(obj)) {
-      if (obj.length === 0) {
-        return '{}[]'; // Empty array type
-      }
-
+    if (Array.isArray(obj) && obj.length) {
       // Check if array contains only primitives or mixed types
       const containsOnlyPrimitives = obj.every(item => item === null || typeof item !== 'object');
 
@@ -171,15 +162,14 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
       return `${elementType}[]`;
     }
 
-    // Handle primitives
-    if (typeof obj !== 'object') {
-      return typeof obj;
-    }
+    const basicType = ConverterUtils.detectJsTypeFromObject(obj);
+
+    if ( basicType !== null ) return basicType;
 
     // --- Handle Objects ---
     // Check for circular references
     if (this.visitedObjects.has(obj)) {
-      return 'any'; // Fallback for circular references
+      return this.options.strict ? 'unknown' : 'any'; // Fallback for circular references
     }
 
     // Mark object as visited to detect cycles
@@ -187,6 +177,18 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
 
     let body = '';
     const keys = Object.keys(obj);
+
+    // Include symbol properties if they exist
+    const symbolKeys = Object.getOwnPropertySymbols(obj);
+    if (symbolKeys.length > 0) {
+      // Add symbol properties with their key.toString()
+      for (const symKey of symbolKeys) {
+        const value = obj[symKey];
+        const type = this.getType(value, indentLevel + 1);
+        const symbolName = symKey.toString().replace('Symbol(', '').replace(')', '');
+        body += `${nextIndent}[${symbolName}]: ${type};\n`;
+      }
+    }
 
     for (const key of keys) {
       const value = obj[key];
@@ -198,7 +200,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     this.visitedObjects.delete(obj);
 
     // Handle empty objects
-    if (keys.length === 0) {
+    if (keys.length === 0 && symbolKeys.length === 0) {
       return '{}';
     }
 
