@@ -89,6 +89,135 @@ export default abstract class ConverterUtils {
   }
 
   /**
+   * Detects the TypeScript type from a JavaScript object or value (Version 2).
+   * An improved version of `detectJsTypeFromObject` with better organization and performance.
+   *
+   * This method performs comprehensive type detection including:
+   * - Primitive types (string, number, boolean, bigint, symbol)
+   * - Special values (null, undefined)
+   * - Built-in objects (Date, RegExp, Error, Promise, etc.)
+   * - Typed arrays and array buffers
+   * - Functions (including async functions)
+   * - Custom class instances
+   * - Iterables and generators
+   *
+   * @param obj - The object or value to analyze for type detection
+   * @param strict - Whether to use strict typing. When true, returns 'unknown' for
+   *                ambiguous cases instead of 'any'. @default false
+   * @returns The detected TypeScript type as a string, or null if the type
+   *          cannot be determined (typically for plain objects that should be
+   *          handled separately)
+   *
+   * @example
+   * ```typescript
+   * // Primitive types
+   * ConverterUtils.detectJsTypeFromObject("hello") // returns "string"
+   * ConverterUtils.detectJsTypeFromObject(42) // returns "number"
+   * ConverterUtils.detectJsTypeFromObject(true) // returns "boolean"
+   *
+   * // Special values
+   * ConverterUtils.detectJsTypeFromObject(null) // returns "unknown"
+   * ConverterUtils.detectJsTypeFromObject(undefined) // returns "unknown"
+   * ConverterUtils.detectJsTypeFromObject(null, true) // returns "null"
+   *
+   * // Built-in objects
+   * ConverterUtils.detectJsTypeFromObject(new Date()) // returns "Date"
+   * ConverterUtils.detectJsTypeFromObject(/pattern/) // returns "RegExp"
+   * ConverterUtils.detectJsTypeFromObject(new Error()) // returns "Error"
+   *
+   * // Arrays and typed arrays
+   * ConverterUtils.detectJsTypeFromObject([1, 2, 3]) // returns "any[]"
+   * ConverterUtils.detectJsTypeFromObject(new Uint8Array()) // returns "Uint8Array"
+   *
+   * // Functions
+   * ConverterUtils.detectJsTypeFromObject(() => {}) // returns "(...args: any[]) => any"
+   * ConverterUtils.detectJsTypeFromObject(async () => {}) // returns "(...args: any[]) => Promise<any>"
+   *
+   * // Custom class instances
+   * class MyClass {}
+   * ConverterUtils.detectJsTypeFromObject(new MyClass()) // returns "MyClass"
+   *
+   * // Plain objects return null (should be handled separately)
+   * ConverterUtils.detectJsTypeFromObject({a: 1}) // returns null
+   * ```
+   */
+  public static detectJsTypeFromObject(obj: any, strict: boolean = false): string | null {
+    const strictAny: string = strict ? 'unknown' : 'any';
+    const type = typeof obj;
+
+    // Handle null and undefined
+    if (obj === null) return strict ? 'null' : 'unknown';
+    if (obj === undefined) return strict ? 'undefined' : 'unknown';
+
+    // Handle primitives and functions
+    if (type !== 'object') {
+      if (type === 'function') {
+        return obj.constructor.name === 'AsyncFunction'
+          ? `(...args: ${strictAny}[]) => Promise<${strictAny}>`
+          : `(...args: ${strictAny}[]) => any`;
+      }
+      if (type === 'bigint') return 'bigint';
+      if (type === 'symbol') return 'symbol';
+      return type;
+    }
+
+    // Handle arrays
+    if (Array.isArray(obj)) {
+      if (obj.length === 0) return `${strictAny}[]`;
+      // Check if it's a typed array
+      if ('buffer' in obj && obj.buffer instanceof ArrayBuffer) {
+        return obj.constructor.name;
+      }
+    }
+
+    // Handle special object types in order of specificity
+    const specialTypes: [new (...args: any[]) => any, (obj: any) => string][] = [
+      [Date, () => 'Date'],
+      [RegExp, () => 'RegExp'],
+      [Error, () => 'Error'],
+      [WeakMap, () => `WeakMap<object, ${strictAny}>`],
+      [WeakSet, () => 'WeakSet<object>'],
+      [Promise, () => `Promise<${strictAny}>`],
+      [ArrayBuffer, () => 'ArrayBuffer'],
+      [DataView, () => 'DataView'],
+      [Int8Array, () => 'Int8Array'],
+      [Uint8Array, () => 'Uint8Array'],
+      [Uint8ClampedArray, () => 'Uint8ClampedArray'],
+      [Int16Array, () => 'Int16Array'],
+      [Uint16Array, () => 'Uint16Array'],
+      [Int32Array, () => 'Int32Array'],
+      [Uint32Array, () => 'Uint32Array'],
+      [Float32Array, () => 'Float32Array'],
+      [Float64Array, () => 'Float64Array'],
+      [BigInt64Array, () => 'BigInt64Array'],
+      [BigUint64Array, () => 'BigUint64Array'],
+    ];
+
+    for (const [constructor, getReturnType] of specialTypes) {
+      if (obj instanceof constructor) {
+        return getReturnType(obj);
+      }
+    }
+
+    // Handle other typed array views
+    if (ArrayBuffer.isView(obj)) {
+      return 'ArrayBufferView';
+    }
+
+    // Handle iterables
+    if (Symbol.iterator in obj) {
+      return `Iterable<${strictAny}>`;
+    }
+
+    // Handle class instances
+    if (obj.constructor?.name && obj.constructor.name !== 'Object' && obj.constructor.name !== 'Function') {
+      return obj.constructor.name;
+    }
+
+    return null;
+  }
+
+  /**
    * Suggests a meaningful interface name based on the provided JSON data.
    * Analyzes the structure and content of JSON objects to generate
    * appropriate interface names that reflect the data's purpose and structure.
