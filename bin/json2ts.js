@@ -71,10 +71,8 @@ const argv = yargs(hideBin(process.argv))
     file: null,
     text: null,
     name: 'RootObject',
-    flat: false,
     'export': 'r',
     'property-case': 'o',
-    strict: false,
     output: null,
   })
   .showHelpOnFail(true, 'Use --help for usage')

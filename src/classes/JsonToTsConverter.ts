@@ -8,7 +8,7 @@ import ConverterBase from '~/base/ConverterBase';
 import ConverterUtils from '~/utils/ConverterUtils';
 
 // types
-import type { ExportType, ConvertOptions } from '~/typings/global';
+import type { ConvertOptions, ExportType } from '~/typings/global';
 
 /**
  * Converts JSON data into TypeScript interface definitions with advanced type inference.
@@ -125,7 +125,7 @@ export default class JsonToTsConverter extends ConverterBase {
    * @returns Complete TypeScript interface definitions
    */
   protected convertJson(jsonData: unknown, rootInterfaceName: string, exportType: ExportType = 'root'): string {
-    const exports = exportType !== 'none' ? 'export ' : '';
+    const exports: string = exportType !== 'none' ? 'export ' : '';
 
     if (typeof jsonData !== 'object' || jsonData === null) {
       if (this.options.strict) {
@@ -142,7 +142,9 @@ export default class JsonToTsConverter extends ConverterBase {
     // Reverse the order to ensure dependencies are declared before dependents
     const orderedInterfaces = Array.from(this.interfaces.entries()).reverse();
 
-    return orderedInterfaces.map(([, content]) => content).join('\n\n');
+    return orderedInterfaces.map(([x, content]) => {
+      return (x === rootInterfaceName && exportType === 'root' ? exports : '') + content;
+    }).join('\n\n');
   }
 
   /**
@@ -181,12 +183,12 @@ export default class JsonToTsConverter extends ConverterBase {
   }
 
   /**
-   * Determines TypeScript type string for a given value.
+   * Determines TypeScript type string for a given value with comprehensive type inference.
    *
-   * Analyzes value and returns appropriate TypeScript type. Handles all JSON
-   * primitives, arrays, and objects. For objects, triggers new interface generation
-   * and returns the interface name. For arrays, uses ArrayUtil to detect appropriate
-   * type including tuple types for mixed arrays.
+   * Analyzes value and returns appropriate TypeScript type with support for all JavaScript types
+   * including primitives, complex objects, built-in classes, and special types like Date, RegExp,
+   * Error, Promise, Generator, Function, and collections (Set, Map, WeakMap, WeakSet). Also handles
+   * typed arrays, ArrayBuffer, DataView, Symbols, BigInt, and class instances.
    *
    * @param value - Value to analyze
    * @param parentKey - Property key used for naming child interfaces
@@ -207,31 +209,48 @@ export default class JsonToTsConverter extends ConverterBase {
       }
     }
 
-    if (value === null) {
-      return this.options.strict ? 'null' : 'unknown';
+    // Set
+    if (value instanceof Set) {
+      const valueType = value.size > 0 ? this.getType(Array.from(value.values())[0], 'SetValue', false) : 'unknown';
+      return `Set<${valueType}>`;
     }
 
-    if (Array.isArray(value)) {
+    // Map
+    if (value instanceof Map) {
+      const entries = Array.from(value.entries());
+      if (entries.length > 0) {
+        const keyType = this.getType(entries[0][0], 'MapKey', false);
+        const valueType = this.getType(entries[0][1], 'MapValue', false);
+        return `Map<${keyType}, ${valueType}>`;
+      }
+      return 'Map<unknown, unknown>';
+    }
+
+    // Handle arrays
+    if (Array.isArray(value) && value.length) {
       // Use ArrayUtil to detect the appropriate array type
-      const arrayType = ConverterUtils.detectTypeFromArray(
+      return ConverterUtils.detectTypeFromArray(
         value,
         this.options.arrayMaxTupleSize ?? 10,
-        this.options.arrayMinTupleSize ?? 2
+        this.options.arrayMinTupleSize ?? 2,
       );
-
-      // If the array contains objects, we need to generate interfaces for them
-      const hasObjects = value.some(v => typeof v === 'object' && v !== null && !Array.isArray(v));
-      if (hasObjects) {
-        const firstObject = value.find(v => typeof v === 'object' && v !== null && !Array.isArray(v));
-        const interfaceName = this.capitalize(parentKey);
-        this.generateInterface(firstObject, interfaceName, appendExport);
-        return `${interfaceName}[]`;
-      }
-
-      return arrayType;
     }
 
-    if (typeof value === 'object') {
+    const basicType = ConverterUtils.detectJsTypeFromObject(value, this.options.strict);
+
+    if ( basicType !== null ) return basicType;
+
+    // Handle built-in objects and special types
+    if (typeof value === 'object' && value !== null) {
+      // Class instance
+      if (value?.constructor?.name !== 'Object') {
+        // Generate interface for class instance properties
+        const interfaceName = this.capitalize(`${parentKey}Instance`);
+        this.generateInterface(value, interfaceName, appendExport);
+        return interfaceName;
+      }
+
+      // Plain object
       const interfaceName = this.capitalize(parentKey);
       this.generateInterface(value, interfaceName, appendExport);
       return interfaceName;
@@ -246,12 +265,16 @@ export default class JsonToTsConverter extends ConverterBase {
           return Number.isInteger(value) ? 'number' : 'number';
         case 'boolean':
           return 'boolean';
+        case 'bigint':
+          return 'bigint';
+        case 'symbol':
+          return 'symbol';
         default:
           return 'unknown';
       }
     }
 
-    return typeof value; // 'string', 'number', 'boolean'
+    return typeof value; // 'string', 'number', 'boolean', 'bigint', 'symbol', 'function', 'object'
   }
 
   /**
