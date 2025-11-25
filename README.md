@@ -7,57 +7,31 @@ from JSON objects, making type-safe development easier and more efficient.
 
 - 🔧 Convert JSON to TypeScript interfaces with ease
 - 📦 Generate separate interfaces for nested objects
-- 📋 Create type definitions for arrays and primitive types
+- 🔢 Intelligent type inference for Numbers, Strings, Booleans, and null values
+- 📋 Create type definitions for arrays, objects and primitive types
+- 🔄 Transform nested/complex JSON into flattened interface via `--flat` flag
 - ✏️ Specify custom names for root interfaces
-- 🔄 Transform nested/complex JSON into flattened interface
-- ❓ Support for optional properties and nullable types
 - 🗂️ Preserve original JSON structure in generated interfaces
 - 🌐 Export options for generated interfaces (`all`, `root`, `none`)
 - 📊 Handle complex nested structures with arrays of objects
 - 🚀 Fast and lightweight CLI for quick conversions
 - 📝 Support for both file and direct text input
-- 🔢 Intelligent type inference for Numbers, Strings, Booleans, and null values
 - 🔌 Read JSON output directly from the *stdin* for pipeline operations
 - ✏️ Added property name suggestion and correction logic based on strict TypeScript identifier rules
+- 🔄 Automatically detects and resolves circular references in JSON structures to prevent infinite recursion
+- 🛡️ Generate strict TypeScript types with exact property matching when enabled via `--strict` flag
 - 🐪 **Property Case Transformation**: Convert property names to various case formats:
   - `c` - camelCase (`userName`)
   - `l` - lower_snake_case (`user_name`)
-  - `o` - preserve original (default)
+  - `o` - preserve original *(default)*
   - `p` - PascalCase (`UserName`)
   - `u` - UPPER_SNAKE_CASE (`USER_NAME`)
   - `k` - kebab-case (`user-name`)
-- 🛡️ **Strict Mode**: Generate strict TypeScript types with exact property matching when enabled via `--strict` flag
-- 🔢 **Smart Array Type Detection**: Automatically infers array types including:
+- 📐 **Smart Array Type Detection**: Automatically infers array types including:
   - Primitive arrays (e.g., `string[]`, `number[]`)
   - Mixed-type tuples (e.g., `[string, number, boolean]`)
   - Object arrays (e.g., `User[]`)
   - Nested arrays with proper type preservation
-- 📐 **Tuple Generation**: Converts fixed-size arrays with mixed types to TypeScript tuples when:
-  - Array length is between `arrayMinTupleSize` (default: `2`) and `arrayMaxTupleSize` (default: `10`)
-  - Elements have different types (e.g., `[1, "text", true]` → `[number, string, boolean]`)
-- ⚙️ **Configurable Array Handling**:
-  - `arrayMaxTupleSize`: Maximum array length for tuple conversion (default: `10`)
-  - `arrayMinTupleSize`: Minimum array length for tuple conversion (default: `2`)
-  - Large arrays automatically fall back to generic array types
-- 🔄 **Nested Structure Support**:
-  - Deeply nested objects with proper interface separation
-  - Arrays of objects with referenced interfaces
-  - Mixed nested structures (objects containing arrays, arrays containing objects)
-- 🛡️ **Type Safety**:
-  - Preserves optional properties (`?:`) from JSON undefined values
-  - Handles nullable types with union syntax (`| null`)
-  - Maintains readonly constraints where applicable
-- 🔄 **Circular Reference Handling**: Automatically detects and resolves circular references in JSON structures to prevent infinite recursion during conversion
-- 📊 **Smart Type Inference**: Intelligently analyzes JSON data to determine the most appropriate TypeScript types including union types for mixed values
-- ⚙️ **Configurable Conversion Options**: Support for custom array tuple size limits, strict type checking, and type mapping for precise control over output
-- 🎯 **Advanced Interface Naming**: Automatically generates meaningful interface names based on JSON structure and property keys
-- 🎯 **Advanced Type Translation** *(for `JavaScript` conversion only)*:
-  - Null values → `null` type (not `any`)
-  - Undefined values → `undefined` type
-  - Symbols → `symbol` type
-  - BigInt → `bigint` type
-  - Functions → `function` type
-  - Dates/Regex → `object` type (with proper handling)
 
 ## Command Line Interface 💻
 
@@ -82,7 +56,7 @@ yarn global add @junaidatari/json2ts  # Yarn
 | `-n, --name`            | `string` | Root interface name                      | `RootObject`   |
 | `-l, --flat`            | `boolean`| Generate flattened interface             | -              |
 | `-e, --export`          | `string` | Export type: `a`=all, `r`=root, `n`=none | `r` *(root)* |
-| `--pc, --property-case` | `string` | Property case transformation: `c`=camelCase, `l`=lower_snake_case, `o`=original, `p`=PascalCase, `u`=UPPER_SNAKE_CASE, `k`=kebab-case | `o` *(original)* |
+| `--pc, --property-case` | `string` | Property case transformation: `c`=camelCase, `l`=lower_snake, `o`=original, `p`=PascalCase, `u`=UPPER_SNAKE, `k`=kebab-case | `o` *(original)* |
 | `-s, --strict`          | `boolean`| Generate strict TypeScript types with exact property matching | - |
 
 Either `--file` or `--text` must be provided or pipe through to read directly from the stdin.
@@ -479,13 +453,19 @@ Converts JSON to TypeScript interfaces.
 **Parameters:**
 
 - `json`: JSON object or string to convert
-- `name`: Root interface name (default: `'RootObject'`)
-- `export`: Export mode (`'all'`, `'root'`, `'none'`) (default: `'all'`)
-- `options`: Configuration options for conversion (optional)
-  - `arrayMaxTupleSize`: Maximum array length for tuple conversion (default: `10`)
-  - `arrayMinTupleSize`: Minimum array length for tuple conversion (default: `2`)
-  - `strict`: Enable strict type checking for better type inference (default: `false`)
-  - `typeMap`: Custom type mapping for overriding default type detection (default: `{}}`)
+- `name`: Root interface name *(default: `'RootObject'`)*
+- `export`: Export mode (`'all'`, `'root'`, `'none'`) *(default: `'root'`)*
+- `options`: Configuration options for conversion *(optional)*
+  - `arrayMaxTupleSize`: Maximum array length for tuple conversion 
+    (default: `10`)
+  - `arrayMinTupleSize`: Minimum array length for tuple conversion 
+    (default: `2`)
+  - `strict`: Enable strict type checking for better type inference 
+    (default: `false`)
+  - `typeMap`: Custom type mapping for overriding default type detection 
+    (default: `{}`)
+  - `propertyCase`: Property case transformation 
+    (default: `'original'`)
 
 **Returns:** Generated TypeScript interfaces string
 
