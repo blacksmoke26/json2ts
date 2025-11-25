@@ -1,4 +1,4 @@
-export interface Sample2 {
+export interface SampleFlat {
   product: string;
   version: number;
   releaseDate: string;
