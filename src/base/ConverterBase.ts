@@ -143,8 +143,18 @@ export default abstract class ConverterBase {
     }
   }
 
-  protected toPropertyName(name: string, caseType: CaseType = 'original'): string {
-    return ConverterUtils.suggestPropertyName(StringUtils.formatName(name, caseType));
+  /**
+   * Formats a property declaration string for TypeScript interfaces.
+   *
+   * @param property The original property name.
+   * @param type The TypeScript type for the property.
+   * @param options Configuration options for formatting. Optional.
+   * @returns A formatted TypeScript property declaration string.
+   */
+  protected formatPropertyValue(property: string, type: string, options: ConvertOptions = {}): string {
+    const name = ConverterUtils.suggestPropertyName(StringUtils.formatName(property, options?.propertyCase ?? 'original'))
+    const readonly = options?.readonlyProperties ? 'readonly ' : '';
+    return `${readonly}${name}: ${type};`;
   }
 
   /**
