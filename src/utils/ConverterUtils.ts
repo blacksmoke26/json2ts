@@ -1,4 +1,15 @@
 /**
+ * Utility class containing helper methods for JSON to TypeScript conversion.
+ * Provides type detection, validation, and formatting functionality for converting
+ * JSON data into TypeScript interfaces with various configuration options.
+ *
+ * Features include:
+ * - Type detection from arrays and objects with configurable tuple generation
+ * - Interface name suggestion based on JSON structure analysis
+ * - Property name validation and formatting with case transformation support
+ * - Robust JSON parsing with comprehensive error handling and reporting
+ * - TypeScript identifier validation to avoid reserved words
+ *
  * @author Junaid Atari <mj.atari@gmail.com>
  * @copyright 2025 Junaid Atari
  * @see https://github.com/blacksmoke26
@@ -7,11 +18,57 @@
 // utils
 import StringUtils from '~/utils/StringUtils';
 
+// types
+import type { ConvertOptions, ParseResult } from '~/typings/global';
+
+/**
+ * Error types for JSON parsing failures.
+ */
+export enum JsonParseError {
+  INVALID_INPUT = 'Invalid input: provided value cannot be parsed',
+  INVALID_FORMAT = 'Invalid JSON format: input does not appear to be valid JSON',
+  PARSE_FAILED = 'JSON parsing failed',
+  UNDEFINED_RESULT = 'Invalid JSON: parsed result is undefined'
+}
+
 /**
  * Utility class containing helper methods for JSON to TypeScript conversion.
  * Provides type detection and analysis functionality for array values.
  */
 export default abstract class ConverterUtils {
+  /**
+   * Set of TypeScript reserved words that cannot be used as identifiers.
+   * Includes all JavaScript keywords plus TypeScript-specific keywords.
+   * Used for validation when generating TypeScript interface property names.
+   */
+  private static readonly TS_RESERVED_WORDS = new Set([
+    'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default',
+    'delete', 'do', 'else', 'export', 'extends', 'false', 'finally', 'for', 'function',
+    'if', 'import', 'in', 'instanceof', 'let', 'new', 'null', 'return', 'super',
+    'switch', 'this', 'throw', 'true', 'try', 'typeof', 'var', 'void', 'while', 'with',
+    'as', 'implements', 'interface', 'package', 'private', 'protected', 'public',
+    'static', 'yield', 'abstract', 'async', 'await', 'constructor', 'declare',
+    'get', 'module', 'namespace', 'require', 'set', 'type', 'from', 'of', 'keyof',
+    'readonly', 'unique', 'unknown', 'never', 'any', 'boolean', 'number', 'object',
+    'string', 'symbol', 'asserts', 'is', 'infer', 'out', 'satisfies'
+  ]);
+
+  /**
+   * Set of characters that can appear at the beginning of a valid JSON string.
+   * Used for quick validation to determine if a string might be valid JSON
+   * before attempting to parse it.
+   *
+   * The characters are:
+   * - '{' and '[': Object and array start
+   * - '"': String start
+   * - 't': true literal
+   * - 'f': false literal
+   * - 'n': null literal
+   * - '-': Negative number start
+   * - '0'-'9': Digit characters for numbers
+   */
+  private static readonly JSON_START_CHARS = new Set(['{', '[', '"', 't', 'f', 'n', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+
   /**
    * Detects the TypeScript type from an array of values.
    * Creates a tuple type if mixed values are present within the configured size limits.
@@ -342,4 +399,214 @@ export default abstract class ConverterUtils {
 
     return keyStr;
   }
+
+  /**
+   * Parses JSON string or returns the input if it's already an object.
+   * Enhanced with comprehensive validation and detailed error reporting.
+   *
+   * This method provides robust JSON parsing with the following features:
+   * - Accepts JSON strings, objects, or null/undefined values
+   * - Performs input validation before parsing attempts
+   * - Provides detailed error messages with position information
+   * - Returns structured results with error categorization
+   * - Handles edge cases like empty strings and whitespace
+   * - Includes input snippets in error messages for debugging
+   *
+   * The parsing process includes multiple validation stages:
+   * 1. Null/undefined check with immediate error reporting
+   * 2. Type detection (string vs already parsed object)
+   * 3. Empty/whitespace string validation
+   * 4. Quick format validation using first character check
+   * 5. Actual JSON parsing with comprehensive error handling
+   *
+   * Error types returned:
+   * - INVALID_INPUT: Null, undefined, empty, or whitespace input
+   * - INVALID_FORMAT: Input doesn't start with valid JSON character
+   * - PARSE_FAILED: JSON.parse() throws an exception
+   * - UNDEFINED_RESULT: Parsed result is undefined (edge case)
+   *
+   * @param json The JSON string, object, or null/undefined value to parse.
+   *             When a non-string value is provided, it's returned as-is.
+   *             When a string is provided, it undergoes validation and parsing.
+   *
+   * @returns ParseResult object containing:
+   *          - data: The parsed JSON object/array/primitive, or null if parsing failed
+   *          - error: JsonParseError enum value if parsing failed, undefined otherwise
+   *          - details: Human-readable error message with context for debugging,
+   *                    including position information and input snippets when applicable
+   *
+   * @example
+   * ```typescript
+   * // Valid JSON string
+   * const result1 = ConverterUtils.jsonParse('{"name": "John"}');
+   * // returns: { data: { name: "John" } }
+   *
+   * // Already parsed object
+   * const result2 = ConverterUtils.jsonParse({ name: "John" });
+   * // returns: { data: { name: "John" } }
+   *
+   * // Invalid JSON
+   * const result3 = ConverterUtils.jsonParse('{"name": "John"');
+   * // returns: {
+   * //   data: null,
+   * //   error: JsonParseError.PARSE_FAILED,
+   * //   details: "at position 15: Unexpected end of JSON input\nInput: {\"name\": \"John\""
+   * // }
+   *
+   * // Empty string
+   * const result4 = ConverterUtils.jsonParse('   ');
+   * // returns: {
+   *   data: null,
+   *   error: JsonParseError.INVALID_INPUT,
+   *   details: 'Input is empty or whitespace'
+   * }
+   *
+   * // Invalid format
+   * const result5 = ConverterUtils.jsonParse('hello world');
+   * // returns: {
+   *   data: null,
+   *   error: JsonParseError.INVALID_FORMAT,
+   *   details: "Input starts with 'h', expected JSON value"
+   * }
+   * ```
+   */
+  public static jsonParse(json: string | unknown | null): ParseResult {
+    // Handle null/undefined
+    if (json === null) {
+      return { data: null, error: JsonParseError.INVALID_INPUT, details: 'Input is null or undefined' };
+    }
+
+    // Return non-string values as-is
+    if (typeof json !== 'string') {
+      return { data: json };
+    }
+
+    // Handle empty strings
+    const trimmed = json.trim();
+    if (!trimmed) {
+      return { data: null, error: JsonParseError.INVALID_INPUT, details: 'Input is empty or whitespace' };
+    }
+
+    // Quick format validation
+    if (!this.JSON_START_CHARS.has(trimmed[0])) {
+      return {
+        data: null,
+        error: JsonParseError.INVALID_FORMAT,
+        details: `Input starts with '${trimmed[0]}', expected JSON value`,
+      };
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed);
+
+      if (parsed === undefined) {
+        return { data: null, error: JsonParseError.UNDEFINED_RESULT };
+      }
+
+      return { data: parsed };
+    } catch (e: any) {
+      const position = e.message.match(/position (\d+)/)?.[1] || 'unknown';
+      const snippet = trimmed.length > 100 ? `${trimmed.substring(0, 97)}...` : trimmed;
+      const details = `at position ${position}: ${e.message}\nInput: ${snippet}`;
+
+      return {
+        data: null,
+        error: JsonParseError.PARSE_FAILED,
+        details,
+      };
+    }
+  }
+
+  /**
+   * Formats a property declaration string for TypeScript interfaces.
+   *
+   * This method takes a property name and type along with optional formatting options
+   * to generate a properly formatted TypeScript property declaration. It handles:
+   * - Property name validation and quoting when necessary
+   * - Application of case transformation based on propertyCase option
+   * - Addition of readonly modifier when readonlyProperties is enabled
+   * - Addition of optional modifier (?) when optionalProperties is enabled
+   *
+   * The resulting string is ready to be used directly in a TypeScript interface definition.
+   *
+   * @param property The original property name from the JSON data.
+   * @param type The detected or specified TypeScript type for the property.
+   * @param options Configuration options that control the formatting behavior:
+   *               - propertyCase: Case transformation for the property name
+   *               - readonlyProperties: Whether to add readonly modifier
+   *               - optionalProperties: Whether to make the property optional
+   * @returns A formatted TypeScript property declaration string ready for interface definition.
+   *
+   * @example
+   * ```typescript
+   * // Basic usage
+   * ConverterUtils.formatPropertyValue('name', 'string');
+   * // returns: "name: string"
+   *
+   * // With readonly and optional
+   * ConverterUtils.formatPropertyValue('age', 'number', {
+   *   readonlyProperties: true,
+   *   optionalProperties: true
+   * });
+   * // returns: "readonly age?: number"
+   *
+   * // With property case transformation
+   * ConverterUtils.formatPropertyValue('user_name', 'string', {
+   *   propertyCase: 'camel'
+   * });
+   * // returns: "userName: string"
+   *
+   * // With special characters in property name
+   * ConverterUtils.formatPropertyValue('full-name', 'string');
+   * // returns: '"full-name": string'
+   * ```
+   */
+  public static formatPropertyValue(property: string, type: string, options: ConvertOptions = {}): string {
+    const name = ConverterUtils.suggestPropertyName(StringUtils.formatName(property, options?.propertyCase ?? 'original'))
+    const readonly = options?.readonlyProperties ? 'readonly ' : '';
+    const optional = options?.optionalProperties ? '?' : '';
+    return `${readonly}${name}${optional}: ${type}`;
+  }
+
+  /**
+   * Validates if a string is a valid TypeScript identifier.
+   *
+   * A valid TypeScript identifier must:
+   * - Start with a letter, underscore, or dollar sign
+   * - Contain only letters, numbers, underscores, or dollar signs
+   * - Not be a reserved TypeScript keyword
+   * - Not consist solely of underscores or dollar signs
+   * - Not start with a digit
+   *
+   * @param name - The string to validate as a TypeScript identifier
+   * @returns true if the string is a valid identifier, false otherwise
+   *
+   * @example
+   * ```typescript
+   * ConverterUtils.checkIdentifier('validName'); // true
+   * ConverterUtils.checkIdentifier('_private'); // true
+   * ConverterUtils.checkIdentifier('$special'); // true
+   * ConverterUtils.checkIdentifier('123invalid'); // false
+   * ConverterUtils.checkIdentifier('class'); // false (reserved word)
+   * ConverterUtils.checkIdentifier(''); // false (empty)
+   * ConverterUtils.checkIdentifier('___'); // false (only special chars)
+   * ```
+   */
+   public static checkIdentifier(name: string): boolean {
+     // Check if input is a non-empty string
+     if (typeof name !== 'string' || !name.length) {
+       return false;
+     }
+
+     switch (true) {
+       case this.TS_RESERVED_WORDS.has(name):
+       case !/^[A-Za-z_$]/.test(name):
+       case !/^[A-Za-z0-9_$]*$/.test(name):
+       case !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) || /^[_$]+$/.test(name):
+       case /^[0-9]/.test(name):
+         return false;
+       default:
+         return true;
+     }
+   }
 }
