@@ -2,6 +2,9 @@
 
 ### Version 0.0.4 (2025-XX-XX)
 
+- Added readonly properties support with `readonlyProperties` option and `--readonly` flag
+- Added optional properties support with `optionalProperties` option and `--optional` flag
+- Enhanced property configuration options for generated interfaces
 - Added property naming convention support with `propertyCase` option and `--property-case` flag
   - Supported: camelCase, snake_case, kebab-case, PascalCase, UPPER_SNAKE_CASE, original
 - Added comprehensive type inference with strict mode support, adding `--strict` flag
