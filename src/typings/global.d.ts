@@ -96,4 +96,16 @@ export interface ConvertOptions {
    * // { "userName": "John" } -> { user_name: string }
    */
   propertyCase?: CaseType;
+
+  /**
+   * Make all generated properties readonly.
+   * When enabled, all properties in the generated TypeScript interfaces will be marked as readonly.
+   * @default false
+   * @example
+   * // With readonlyProperties: true
+   * // { "name": "John" } -> { readonly name: string }
+   * // With readonlyProperties: false
+   * // { "name": "John" } -> { name: string }
+   */
+  readonlyProperties?: boolean;
 }

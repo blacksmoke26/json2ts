@@ -67,6 +67,11 @@ const argv = yargs(hideBin(process.argv))
     type: 'boolean',
     alias: 's',
   })
+  .option('readonly', {
+    description: 'Make all generated properties readonly',
+    type: 'boolean',
+    alias: 'r',
+  })
   .default({
     file: null,
     text: null,
@@ -163,6 +168,7 @@ async function readStdin () {
   const flat = Object.hasOwn(argv, 'flat');
   const propertyCase = toCaseType(argv['property-case']);
   const strict = Object.hasOwn(argv, 'strict');
+  const readonlyProperties = Object.hasOwn(argv, 'readonly');
 
   let jsonData;
   try {
@@ -190,6 +196,7 @@ async function readStdin () {
     jsonData, argv.name || 'RootObject', toExportType(argv['export']), {
       propertyCase,
       strict,
+      readonlyProperties,
     },
   ) + `\n`;
 

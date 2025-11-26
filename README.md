@@ -58,6 +58,7 @@ yarn global add @junaidatari/json2ts  # Yarn
 | `-e, --export`          | `string` | Export type: `a`=all, `r`=root, `n`=none | `r` *(root)* |
 | `--pc, --property-case` | `string` | Property case transformation: `c`=camelCase, `l`=lower_snake, `o`=original, `p`=PascalCase, `u`=UPPER_SNAKE, `k`=kebab-case | `o` *(original)* |
 | `-s, --strict`          | `boolean`| Generate strict TypeScript types with exact property matching | - |
+| `-r, --readonly`        | `boolean`| Make all generated properties readonly | - |
 
 Either `--file` or `--text` must be provided or pipe through to read directly from the stdin.
 
@@ -78,6 +79,15 @@ json2ts -t '{"user": {"name": "John"}}' -n User
 # Windows
 json2ts -t "{\"user\": {\"name\": \"John\"}}" -n User
 ```
+
+#### Readonly properties
+
+```bash
+# Generate with readonly properties
+json2ts -f input.json -o readonly-types.ts -n Data --readonly
+
+# Combine with strict mode
+json2ts -f input.json -o strict-readonly.ts -n Data --strict --readonly
 
 #### Generate flattened interface
 
@@ -456,16 +466,18 @@ Converts JSON to TypeScript interfaces.
 - `name`: Root interface name *(default: `'RootObject'`)*
 - `export`: Export mode (`'all'`, `'root'`, `'none'`) *(default: `'root'`)*
 - `options`: Configuration options for conversion *(optional)*
-  - `arrayMaxTupleSize`: Maximum array length for tuple conversion 
+  - `arrayMaxTupleSize`: Maximum number of items to convert to tuple type 
     (default: `10`)
-  - `arrayMinTupleSize`: Minimum array length for tuple conversion 
+  - `arrayMinTupleSize`: Minimum number of items required to create a tuple type 
     (default: `2`)
   - `strict`: Enable strict type checking for better type inference 
     (default: `false`)
-  - `typeMap`: Custom type mapping for overriding default type detection 
+  - `typeMap`: Custom type mapping for specific JSON structures 
     (default: `{}`)
-  - `propertyCase`: Property case transformation 
+  - `propertyCase`: Naming convention for generated property names 
     (default: `'original'`)
+  - `readonlyProperties`: Make all generated properties readonly 
+    (default: `false`)
 
 **Returns:** Generated TypeScript interfaces string
 
