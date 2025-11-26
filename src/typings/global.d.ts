@@ -108,4 +108,16 @@ export interface ConvertOptions {
    * // { "name": "John" } -> { name: string }
    */
   readonlyProperties?: boolean;
+
+  /**
+   * Make all generated properties optional.
+   * When enabled, all properties in the generated TypeScript interfaces will be marked as optional with the '?' modifier.
+   * @default false
+   * @example
+   * // With optionalProperties: true
+   * // { "name": "John" } -> { name?: string }
+   * // With optionalProperties: false
+   * // { "name": "John" } -> { name: string }
+   */
+  optionalProperties?: boolean;
 }
