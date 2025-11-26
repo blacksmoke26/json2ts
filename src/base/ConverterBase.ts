@@ -154,7 +154,8 @@ export default abstract class ConverterBase {
   protected formatPropertyValue(property: string, type: string, options: ConvertOptions = {}): string {
     const name = ConverterUtils.suggestPropertyName(StringUtils.formatName(property, options?.propertyCase ?? 'original'))
     const readonly = options?.readonlyProperties ? 'readonly ' : '';
-    return `${readonly}${name}: ${type};`;
+    const optional = options?.optionalProperties ? '?' : '';
+    return `${readonly}${name}${optional}: ${type}`;
   }
 
   /**

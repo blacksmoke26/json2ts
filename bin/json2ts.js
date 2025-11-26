@@ -72,6 +72,11 @@ const argv = yargs(hideBin(process.argv))
     type: 'boolean',
     alias: 'r',
   })
+  .option('optional', {
+    description: 'Make all generated properties optional',
+    type: 'boolean',
+    alias: 'op',
+  })
   .default({
     file: null,
     text: null,
@@ -169,6 +174,7 @@ async function readStdin () {
   const propertyCase = toCaseType(argv['property-case']);
   const strict = Object.hasOwn(argv, 'strict');
   const readonlyProperties = Object.hasOwn(argv, 'readonly');
+  const optionalProperties = Object.hasOwn(argv, 'optional');
 
   let jsonData;
   try {
@@ -197,6 +203,7 @@ async function readStdin () {
       propertyCase,
       strict,
       readonlyProperties,
+      optionalProperties,
     },
   ) + `\n`;
 

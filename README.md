@@ -20,6 +20,8 @@ from JSON objects, making type-safe development easier and more efficient.
 - ✏️ Added property name suggestion and correction logic based on strict TypeScript identifier rules
 - 🔄 Automatically detects and resolves circular references in JSON structures to prevent infinite recursion
 - 🛡️ Generate strict TypeScript types with exact property matching when enabled via `--strict` flag
+- 🔒 Read-only Properties: Generate immutable interfaces with `readonly` modifier
+- ❓ Optional Properties: Generate interfaces with all properties marked optional (`?`)
 - 🐪 **Property Case Transformation**: Convert property names to various case formats:
   - `c` - camelCase (`userName`)
   - `l` - lower_snake_case (`user_name`)
@@ -32,6 +34,11 @@ from JSON objects, making type-safe development easier and more efficient.
   - Mixed-type tuples (e.g., `[string, number, boolean]`)
   - Object arrays (e.g., `User[]`)
   - Nested arrays with proper type preservation
+- 🗺️ **Custom Type Mapping**: Override default type detection with custom mappings:
+  - Map specific JSON properties to custom TypeScript types
+  - Useful for integrating with existing type definitions
+  - Example: Map `"user_id"` to `UserID` type
+  - Configure via `typeMap` option in API or CLI
 
 ## Command Line Interface 💻
 
@@ -59,6 +66,7 @@ yarn global add @junaidatari/json2ts  # Yarn
 | `--pc, --property-case` | `string` | Property case transformation: `c`=camelCase, `l`=lower_snake, `o`=original, `p`=PascalCase, `u`=UPPER_SNAKE, `k`=kebab-case | `o` *(original)* |
 | `-s, --strict`          | `boolean`| Generate strict TypeScript types with exact property matching | - |
 | `-r, --readonly`        | `boolean`| Make all generated properties readonly | - |
+| `--op, --optional`      | `boolean`| Make all generated properties optional | - |
 
 Either `--file` or `--text` must be provided or pipe through to read directly from the stdin.
 
@@ -88,6 +96,17 @@ json2ts -f input.json -o readonly-types.ts -n Data --readonly
 
 # Combine with strict mode
 json2ts -f input.json -o strict-readonly.ts -n Data --strict --readonly
+```
+
+#### Optional properties
+
+```bash
+# Generate with optional properties
+json2ts -f input.json -o optional-types.ts -n Data --op
+
+# Combine with readonly mode
+json2ts -f input.json -o readonly-optional.ts -n Data --readonly --optional
+```
 
 #### Generate flattened interface
 
@@ -229,6 +248,168 @@ for file in data/*.json; do
   base=$(basename "$file" .json)
   json2ts -f "$file" -o "types/${base}.ts" -n "${base^}Data"
 done
+```
+
+#### Real-world API integration
+
+```bash
+# GitHub API: Get repository information
+curl -s https://api.github.com/repos/torvalds/linux | \
+  json2ts -n GithubRepo -o repo-types.ts --property-case c
+
+# Reddit API: Fetch subreddit posts
+curl -s -H "User-Agent: json2ts" \
+  "https://www.reddit.com/r/typescript/top.json?limit=10" | \
+  json2ts -n RedditPost -o reddit-types.ts --export all
+
+# GraphQL API query with curl
+curl -s -X POST https://api.spacex.land/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ launches { id name rocket { name } } }"}' | \
+  jq -r '.data.launches[0]' | \
+  json2ts -n SpaceXLaunch -o spacex-types.ts --property-case p
+```
+
+#### Database schema introspection
+
+```bash
+# PostgreSQL schema extraction
+psql -d myapp -c "
+  SELECT json_agg(t) FROM (
+    SELECT 
+      table_name,
+      array_agg(column_name::text) as columns,
+      array_agg(data_type::text) as types
+    FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    GROUP BY table_name
+  ) t
+" | json2ts -n DBSchema -o db-schema.ts --readonly
+
+# MongoDB collection structure analysis
+mongo myapp --eval "
+  db.users.findOne().forEach(printjson)
+" | json2ts -n MongoUser -o mongo-types.ts --strict
+
+# Prisma schema introspection
+npx prisma introspect --print | \
+  grep -o '"model"[^}]*}' | \
+  json2ts -n PrismaModel -o prisma-types.ts --export all
+```
+
+#### Configuration management
+
+```bash
+# Kubernetes deployment analysis
+kubectl get deployment myapp -o json | \
+  json2ts -n K8sDeployment -o k8s-types.ts --readonly
+
+# Docker compose configuration
+docker compose config --format json | \
+  json2ts -n DockerCompose -o compose-types.ts --property-case l
+
+# Terraform state parsing
+terraform show -json | \
+  jq '.values.root_module.resources[] | select(.type == "aws_instance")' | \
+  json2ts -n TFInstance -o terraform-types.ts --strict
+```
+
+#### Testing and validation
+
+```bash
+# Generate test types from JSON schema
+jsonschema2jsonpointer schema.json | \
+  jq -r '.[] | .pointer' | \
+  xargs -I {} json2ts -f schema.json -n TestSchema --strict
+
+# Validate API responses against types
+for endpoint in users posts comments; do
+  curl -s "https://api.example.com/$endpoint" | \
+    json2ts -n "${endpoint^}Response" -o "test/types/${endpoint}.ts"
+done
+
+# Generate mock data types
+jq -n '{
+  users: [range(10) | {
+    id: .,
+    name: "User\(.)",
+    email: "user\(.)@example.com",
+    roles: ["user", (\. % 3 == 0 and "admin" or empty)]
+  }]
+}' | json2ts -n MockUsers -o mock-types.ts --export all
+```
+
+#### Advanced pipeline operations
+
+```bash
+# Multi-stage transformation
+curl -s https://api.exchangerate-api.com/v4/latest/USD | \
+  jq '{rates: .rates | to_entries | map({key: .key, value: .value})}' | \
+  json2ts -n ExchangeRate -o rates.ts --property-case c | \
+  npx prettier --parser typescript > src/types/rates.ts
+
+# Parallel processing
+echo 'users posts comments products' | \
+  tr ' ' '\n' | \
+  xargs -P 4 -I {} bash -c "
+    curl -s \"https://api.example.com/{}\" | \
+      json2ts -n \"\$(echo {} | sed 's/.*/\u&/')\" -o \"types/{}.ts\"
+  "
+
+# Conditional type generation
+json2ts -f data.json -o temp.ts -n Data && \
+if grep -q 'interface.*{' temp.ts; then
+  echo "Generated interface:"
+  cat temp.ts
+else
+  echo "No interfaces generated"
+fi
+rm temp.ts
+```
+
+#### Enterprise workflows
+
+```bash
+# Service mesh configuration
+istioctl proxy-config routes deployment/reviews.default -o json | \
+  jq '.httpRoutes[0].route[0].match' | \
+  json2ts -n IstioRoute -o istio-types.ts --readonly
+
+# OpenAPI schema conversion
+curl -s https://petstore.swagger.io/v2/swagger.json | \
+  jq '.definitions' | \
+  json2ts -n PetStore -o api-types.ts --export all
+
+# Microservice contract generation
+for service in auth payment notification; do
+  curl -s "https://contract-registry.internal/api/v1/contracts/$service" | \
+    jq '.schema' | \
+    json2ts -n "${service^}Contract" -o "src/contracts/${service}.ts" --strict
+done
+
+# CloudFormation template parsing
+aws cloudformation get-template --stack-name my-stack | \
+  jq -r '.TemplateBody' | \
+  json2ts -n CFTemplate -o cf-types.ts --property-case k
+```
+
+#### CI/CD integration
+
+```bash
+# GitHub Actions workflow validation
+find .github/workflows -name '*.yml' -exec \
+  yq eval -o json {} \; | \
+  json2ts -n GitHubAction -o action-types.ts
+
+# Azure DevOps pipeline analysis
+az pipelines show --id $(az pipelines list --query [0].id -o tsv) | \
+  jq '.process' | \
+  json2ts -n AzPipeline -o pipeline-types.ts
+
+# Dockerfile instruction parsing
+docker inspect $(docker build -q .) | \
+  jq -r '.[0].Config.Labels' | \
+  json2ts -n DockerLabels -o labels.ts --readonly
 ```
 
 ### Tips 💡
@@ -477,6 +658,8 @@ Converts JSON to TypeScript interfaces.
   - `propertyCase`: Naming convention for generated property names 
     (default: `'original'`)
   - `readonlyProperties`: Make all generated properties readonly 
+    (default: `false`)
+  - `optionalProperties`: Make all generated properties optional 
     (default: `false`)
 
 **Returns:** Generated TypeScript interfaces string
