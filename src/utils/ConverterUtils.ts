@@ -20,6 +20,7 @@ import StringUtils from '~/utils/StringUtils';
 
 // types
 import type { ConvertOptions, ParseResult } from '~/typings/global';
+import { pascalCase } from 'change-case';
 
 /**
  * Error types for JSON parsing failures.
@@ -608,5 +609,301 @@ export default abstract class ConverterUtils {
        default:
          return true;
      }
+   }
+
+   /**
+    * Validates if a string can be safely used as a TypeScript type name.
+    *
+    * A valid type name must:
+    * - Start with an uppercase letter (PascalCase convention)
+    * - Contain only letters and numbers
+    * - Not be a reserved TypeScript keyword
+    * - Not be a built-in type name
+    * - Not conflict with common library types
+    *
+    * @param name - The string to validate as a TypeScript type name
+    * @returns true if the string is a valid type name, false otherwise
+    *
+    * @example
+    * ```typescript
+    * ConverterUtils.checkTypeName('User'); // true
+    * ConverterUtils.checkTypeName('UserProfile'); // true
+    * ConverterUtils.checkTypeName('user'); // false (not PascalCase)
+    * ConverterUtils.checkTypeName('String'); // false (built-in type)
+    * ConverterUtils.checkTypeName('123Invalid'); // false (starts with number)
+    * ```
+    */
+   public static checkTypeName(name: string): boolean {
+     // Check if input is a non-empty string
+     if (typeof name !== 'string' || !name.length) {
+       return false;
+     }
+
+     // Built-in TypeScript types that should not be used as interface names
+     const builtInTypes = new Set([
+       'String', 'Number', 'Boolean', 'Object', 'Array', 'Function', 'Date', 'RegExp',
+       'Error', 'Promise', 'Map', 'Set', 'WeakMap', 'WeakSet', 'Symbol', 'BigInt',
+       'any', 'unknown', 'never', 'void', 'null', 'undefined'
+     ]);
+
+     // Must start with uppercase letter and contain only alphanumeric characters
+     if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) {
+       return false;
+     }
+
+     // Cannot be a reserved word or built-in type
+     return !(this.TS_RESERVED_WORDS.has(name) || builtInTypes.has(name));
+   }
+
+   /**
+    * Converts a string to a valid TypeScript interface name.
+    * Applies various transformations to ensure the name follows TypeScript conventions.
+    *
+    * @param name - The input string to convert to an interface name
+    * @param fallback - Default name to use if input is invalid or empty
+    * @returns A valid TypeScript interface name in PascalCase
+    *
+    * @example
+    * ```typescript
+    * ConverterUtils.toInterfaceName('user_profile'); // "UserProfile"
+    * ConverterUtils.toInterfaceName('user-name'); // "UserName"
+    * ConverterUtils.toInterfaceName('123invalid'); // "Invalid"
+    * ConverterUtils.toInterfaceName(''); // "RootObject"
+    * ConverterUtils.toInterfaceName('class'); // "ClassType"
+    * ```
+    */
+   public static toInterfaceName(name: string, fallback: string = 'RootObject'): string {
+     if (!name || typeof name !== 'string' || name.trim()) return fallback;
+
+     // Convert to PascalCase and clean the name
+     let cleanName = pascalCase(name);
+
+     // Handle empty result or reserved words
+     return !cleanName || this.TS_RESERVED_WORDS.has(cleanName.toLowerCase())
+       ? (cleanName ? `${cleanName}Type` : fallback)
+       : cleanName;
+   }
+
+   /**
+    * Determines if a value should be treated as a date type.
+    * Checks for various date string formats and Date objects.
+    *
+    * @param value - The value to check for date type
+    * @returns true if the value should be treated as a date, false otherwise
+    *
+    * @example
+    * ```typescript
+    * ConverterUtils.isDateType(new Date()); // true
+    * ConverterUtils.isDateType('2023-01-01'); // true
+    * ConverterUtils.isDateType('2023-01-01T00:00:00Z'); // true
+    * ConverterUtils.isDateType('not a date'); // false
+    * ConverterUtils.isDateType(123); // false
+    * ```
+    */
+   public static isDateType(value: unknown): boolean {
+     if (value instanceof Date) {
+       return true;
+     }
+
+     if (typeof value !== 'string') {
+       return false;
+     }
+
+     // Common date patterns
+     const datePatterns = [
+       /^\d{4}-\d{2}-\d{2}$/, // YYYY-MM-DD
+       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/, // ISO 8601
+       /^\d{2}\/\d{2}\/\d{4}$/, // MM/DD/YYYY
+       /^\d{2}-\d{2}-\d{4}$/, // MM-DD-YYYY
+     ];
+
+     return datePatterns.some(pattern => pattern.test(value));
+   }
+
+   /**
+    * Determines if a value should be treated as an enum type.
+    * Checks if an array contains only string values that could be enum candidates.
+    *
+    * @param value - The value to check for enum type
+    * @returns true if the value should be treated as an enum, false otherwise
+    *
+    * @example
+    * ```typescript
+    * ConverterUtils.isEnumType(['RED', 'GREEN', 'BLUE']); // true
+    * ConverterUtils.isEnumType([1, 2, 3]); // false (numbers)
+    * ConverterUtils.isEnumType(['red', 'green', 'blue']); // true
+    * ConverterUtils.isEnumType(['not', 'valid', 123]); // false (mixed types)
+    * ```
+    */
+   public static isEnumType(value: unknown): boolean {
+     if (!Array.isArray(value) || value.length === 0) {
+       return false;
+     }
+
+     // Check if all items are strings
+     const allStrings = value.every(item => typeof item === 'string');
+     if (!allStrings) {
+       return false;
+     }
+
+     // Check if strings are valid enum candidates (alphanumeric with underscores)
+     const validEnumPattern = /^[A-Z_][A-Z0-9_]*$/;
+     return value.every(item => validEnumPattern.test(item));
+   }
+
+   /**
+    * Infers the most specific type for a value.
+    * Combines multiple type detection methods for comprehensive type inference.
+    *
+    * @param value - The value to analyze
+    * @param options - Configuration options for type detection
+    * @returns The most specific TypeScript type that can be inferred
+    *
+    * @example
+    * ```typescript
+    * ConverterUtils.inferType('2023-01-01'); // "Date"
+    * ConverterUtils.inferType(['RED', 'GREEN']); // "'RED' | 'GREEN'"
+    * ConverterUtils.inferType({}); // null (should be handled as object)
+    * ConverterUtils.inferType([1, 2, 3]); // "number[]"
+    * ```
+    */
+   public static inferType(value: unknown, options: ConvertOptions = {}): string | null {
+     const strict = options.strict ?? false;
+
+     // Check for date type first
+     if (this.isDateType(value)) {
+       return 'Date';
+     }
+
+     // Check for enum type
+     if (this.isEnumType(value)) {
+       const values = value as string[];
+       return values.map(v => `'${v}'`).join(' | ');
+     }
+
+     // Use existing type detection
+     if (Array.isArray(value)) {
+       return this.detectTypeFromArray(
+         value,
+         options.arrayMaxTupleSize ?? 10,
+         options.arrayMinTupleSize ?? 2
+       );
+     }
+
+     return this.detectJsTypeFromObject(value, strict);
+   }
+
+   /**
+    * Generates a unique type name that doesn't conflict with existing names.
+    * Appends a number suffix if the name already exists in the provided set.
+    *
+    * @param baseName - The desired base name for the type
+    * @param existingNames - Set of already used type names to avoid conflicts
+    * @param suffix - Optional suffix to append (defaults to "Type")
+    * @returns A unique type name that doesn't conflict with existing names
+    *
+    * @example
+    * ```typescript
+    * const used = new Set(['User', 'UserType']);
+    * ConverterUtils.generateUniqueName('User', used); // "UserType2"
+    * ConverterUtils.generateUniqueName('Profile', used); // "ProfileType"
+    * ```
+    */
+   public static generateUniqueName(
+     baseName: string,
+     existingNames: Set<string>,
+     suffix: string = 'Type'
+   ): string {
+     let name = `${baseName}${suffix}`;
+     let counter = 2;
+
+     while (existingNames.has(name)) {
+       name = `${baseName}${suffix}${counter}`;
+       counter++;
+     }
+
+     return name;
+   }
+
+   /**
+    * Analyzes an object's structure to determine if it's suitable for tuple conversion.
+    * Checks if an object has numeric keys that could represent array indices.
+    *
+    * @param obj - The object to analyze
+    * @returns true if the object structure suggests it should be a tuple, false otherwise
+    *
+    * @example
+    * ```typescript
+    * ConverterUtils.isTupleLike({ 0: 'a', 1: 'b', 2: 'c' }); // true
+    * ConverterUtils.isTupleLike({ 0: 'a', 2: 'b' }); // false (missing index)
+    * ConverterUtils.isTupleLike({ a: 'x', b: 'y' }); // false (non-numeric keys)
+    * ```
+    */
+   public static isTupleLike(obj: Record<string, unknown>): boolean {
+     const keys = Object.keys(obj);
+
+     if (keys.length === 0) {
+       return false;
+     }
+
+     // Check if all keys are numeric and form a continuous sequence
+     const numericKeys = keys.map(Number).filter(n => !isNaN(n));
+
+     if (numericKeys.length !== keys.length) {
+       return false;
+     }
+
+     // Check for continuous sequence starting from 0
+     const sortedKeys = [...numericKeys].sort((a, b) => a - b);
+
+     return sortedKeys.every((key, index) => key === index);
+   }
+
+   /**
+    * Converts a tuple-like object to an array representation.
+    * Transforms an object with numeric keys into a proper array.
+    *
+    * @param obj - The tuple-like object to convert
+    * @returns An array with values ordered by their numeric keys
+    *
+    * @example
+    * ```typescript
+    * ConverterUtils.tupleLikeToArray({ 0: 'a', 1: 'b', 2: 'c' });
+    * // returns ['a', 'b', 'c']
+    * ```
+    */
+   public static tupleLikeToArray(obj: Record<string, unknown>): unknown[] {
+     const keys = Object.keys(obj)
+       .map(Number)
+       .filter(n => !isNaN(n))
+       .sort((a, b) => a - b);
+
+     return keys.map(key => obj[String(key)]);
+   }
+
+   /**
+    * Checks if a type name represents a primitive type.
+    * Useful for determining if a type needs interface generation.
+    *
+    * @param typeName - The type name to check
+    * @returns true if the type is a primitive type, false otherwise
+    *
+    * @example
+    * ```typescript
+    * ConverterUtils.isPrimitiveType('string'); // true
+    * ConverterUtils.isPrimitiveType('number'); // true
+    * ConverterUtils.isPrimitiveType('boolean'); // true
+    * ConverterUtils.isPrimitiveType('CustomType'); // false
+    * ConverterUtils.isPrimitiveType('string[]'); // false (array)
+    * ```
+    */
+   public static isPrimitiveType(typeName: string): boolean {
+     const primitiveTypes = new Set([
+       'string', 'number', 'boolean', 'bigint', 'symbol',
+       'null', 'undefined', 'any', 'unknown', 'never', 'void'
+     ]);
+
+     // Check if it's exactly a primitive type (not an array or union)
+     return primitiveTypes.has(typeName) && !typeName.includes('[') && !typeName.includes('|');
    }
 }
