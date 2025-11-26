@@ -20,7 +20,6 @@ import StringUtils from '~/utils/StringUtils';
 
 // types
 import type { ConvertOptions, ParseResult } from '~/typings/global';
-import { pascalCase } from 'change-case';
 
 /**
  * Error types for JSON parsing failures.
@@ -69,13 +68,8 @@ export default abstract class ConverterUtils {
    * The characters are:
    * - '{' and '[': Object and array start
    * - '"': String start
-   * - 't': true literal
-   * - 'f': false literal
-   * - 'n': null literal
-   * - '-': Negative number start
-   * - '0'-'9': Digit characters for numbers
    */
-  private static readonly JSON_START_CHARS = new Set(['{', '[', '"', 't', 'f', 'n', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+  private static readonly JSON_START_CHARS = new Set(['{', '[', '"']);
 
   /**
    * Detects the TypeScript type from an array of values.
@@ -429,23 +423,25 @@ export default abstract class ConverterUtils {
    *          - error: JsonParseError enum value if parsing failed, undefined otherwise
    *          - details: Human-readable error message with context for debugging,
    *                    including position information and input snippets when applicable
+   *          - success: Boolean indicating if the operation was successful
    *
    * @example
    * ```typescript
    * // Valid JSON string
    * const result1 = ConverterUtils.jsonParse('{"name": "John"}');
-   * // returns: { data: { name: "John" } }
+   * // returns: { data: { name: "John" }, success: true }
    *
    * // Already parsed object
    * const result2 = ConverterUtils.jsonParse({ name: "John" });
-   * // returns: { data: { name: "John" } }
+   * // returns: { data: { name: "John" }, success: true }
    *
    * // Invalid JSON
    * const result3 = ConverterUtils.jsonParse('{"name": "John"');
    * // returns: {
    * //   data: null,
    * //   error: JsonParseError.PARSE_FAILED,
-   * //   details: "at position 15: Unexpected end of JSON input\nInput: {\"name\": \"John\""
+   * //   details: "at position 15: Unexpected end of JSON input\nInput: {\"name\": \"John\"",
+   * //   success: false
    * // }
    *
    * // Empty string
@@ -453,7 +449,8 @@ export default abstract class ConverterUtils {
    * // returns: {
    *   data: null,
    *   error: JsonParseError.INVALID_INPUT,
-   *   details: 'Input is empty or whitespace'
+   *   details: 'Input is empty or whitespace',
+   *   success: false
    * }
    *
    * // Invalid format
@@ -461,25 +458,26 @@ export default abstract class ConverterUtils {
    * // returns: {
    *   data: null,
    *   error: JsonParseError.INVALID_FORMAT,
-   *   details: "Input starts with 'h', expected JSON value"
+   *   details: "Input starts with 'h', expected JSON value",
+   *   success: false
    * }
    * ```
    */
   public static jsonParse(json: string | unknown | null): ParseResult {
     // Handle null/undefined
     if (json === null) {
-      return { data: null, error: JsonParseError.INVALID_INPUT, details: 'Input is null or undefined' };
+      return { data: null, error: JsonParseError.INVALID_INPUT, details: 'Input is null or undefined', success: false };
     }
 
     // Return non-string values as-is
     if (typeof json !== 'string') {
-      return { data: json };
+      return { data: json, success: true };
     }
 
     // Handle empty strings
     const trimmed = json.trim();
     if (!trimmed) {
-      return { data: null, error: JsonParseError.INVALID_INPUT, details: 'Input is empty or whitespace' };
+      return { data: null, error: JsonParseError.INVALID_INPUT, details: 'Input is empty or whitespace', success: false };
     }
 
     // Quick format validation
@@ -488,6 +486,7 @@ export default abstract class ConverterUtils {
         data: null,
         error: JsonParseError.INVALID_FORMAT,
         details: `Input starts with '${trimmed[0]}', expected JSON value`,
+        success: false,
       };
     }
 
@@ -495,10 +494,10 @@ export default abstract class ConverterUtils {
       const parsed = JSON.parse(trimmed);
 
       if (parsed === undefined) {
-        return { data: null, error: JsonParseError.UNDEFINED_RESULT };
+        return { data: null, error: JsonParseError.UNDEFINED_RESULT, success: false };
       }
 
-      return { data: parsed };
+      return { data: parsed, success: true };
     } catch (e: any) {
       const position = e.message.match(/position (\d+)/)?.[1] || 'unknown';
       const snippet = trimmed.length > 100 ? `${trimmed.substring(0, 97)}...` : trimmed;
@@ -508,6 +507,7 @@ export default abstract class ConverterUtils {
         data: null,
         error: JsonParseError.PARSE_FAILED,
         details,
+        success: false,
       };
     }
   }

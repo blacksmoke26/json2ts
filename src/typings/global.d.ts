@@ -27,6 +27,8 @@ export interface ParseResult {
   error?: JsonParseError;
   /** Additional error details for debugging purposes */
   details?: string;
+  /** Indicating if the operation was successful */
+  success?: boolean;
 }
 
 /**
