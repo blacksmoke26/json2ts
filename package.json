@@ -81,9 +81,7 @@
     "d:pack": "npm run build && npm pack && npm run clean",
     "dev": "ts-node ./samples/json-to-interface.ts",
     "dev:flat": "ts-node ./samples/json-to-flat-interface.ts",
-    "test": "npm run test:array && npm run test:property",
-    "test:array": "ts-node ./samples/util-detect-type-from-array.ts",
-    "test:property": "ts-node ./samples/util-suggest-property-name.ts"
+    "test": "ts-node tests/index.ts"
   },
   "engines": {
     "node": ">= 20"
