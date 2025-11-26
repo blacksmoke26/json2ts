@@ -4,6 +4,7 @@
  * @see https://github.com/blacksmoke26
  */
 
+// base
 import ConverterBase from '~/base/ConverterBase';
 
 // utils
@@ -193,7 +194,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, indentLevel + 1);
-      body += `${nextIndent}${this.formatPropertyValue(key, type, this.options)};\n`;
+      body += `${nextIndent}${ConverterUtils.formatPropertyValue(key, type, this.options)};\n`;
     }
 
     // Remove object from visited set after processing

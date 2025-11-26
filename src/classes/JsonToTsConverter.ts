@@ -4,7 +4,10 @@
  * @see https://github.com/blacksmoke26
  */
 
+// base
 import ConverterBase from '~/base/ConverterBase';
+
+// utils
 import ConverterUtils from '~/utils/ConverterUtils';
 
 // types
@@ -175,7 +178,7 @@ export default class JsonToTsConverter extends ConverterBase {
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, this.capitalize(key), appendExport);
-      interfaceBody += `  ${this.formatPropertyValue(key, type, this.options)};\n`;
+      interfaceBody += `  ${ConverterUtils.formatPropertyValue(key, type, this.options)};\n`;
     }
 
     const fullInterface = `${appendExport ? 'export ' : ''}interface ${interfaceName} {\n${interfaceBody.trimEnd()}\n}`;
