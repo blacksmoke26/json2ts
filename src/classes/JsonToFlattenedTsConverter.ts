@@ -193,7 +193,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, indentLevel + 1);
-      body += `${nextIndent}${this.toPropertyName(key, this.options?.propertyCase ?? 'original')}: ${type};\n`;
+      body += `${nextIndent}${this.formatPropertyValue(key, type, this.options)};\n`;
     }
 
     // Remove object from visited set after processing
