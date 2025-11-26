@@ -121,9 +121,10 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
    */
   protected convertJson(jsonData: unknown, interfaceName: string, exportType: ExportType = 'root'): string {
     const exports = exportType !== 'none' ? 'export ' : '';
+    const safeInterfaceName = ConverterUtils.toInterfaceName(interfaceName);
 
     if (typeof jsonData !== 'object' || jsonData === null) {
-      return exports + `interface ${interfaceName} {}`;
+      return exports + `interface ${safeInterfaceName} {}`;
     }
 
     // Reset the visited set for each conversion run
@@ -131,7 +132,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
 
     const interfaceBody = this.generateObjectBody(jsonData, 0).trim();
 
-    return exports + `interface ${interfaceName} ${interfaceBody}`.replace(/\[]$/, '');
+    return exports + `interface ${safeInterfaceName} ${interfaceBody}`.replace(/\[]$/, '');
   }
 
   /**
