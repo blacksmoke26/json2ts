@@ -4,28 +4,22 @@
  * @see https://github.com/blacksmoke26
  */
 
-import StringUtils from '~/utils/StringUtils';
+// utils
 import ConverterUtils from '~/utils/ConverterUtils';
 
 // types
-import type { ExportType, ConvertOptions, ParseResult, CaseType } from '~/typings/global';
-
-/**
- * Error types for JSON parsing failures.
- */
-export enum JsonParseError {
-  INVALID_INPUT = 'Invalid input: provided value cannot be parsed',
-  INVALID_FORMAT = 'Invalid JSON format: input does not appear to be valid JSON',
-  PARSE_FAILED = 'JSON parsing failed',
-  UNDEFINED_RESULT = 'Invalid JSON: parsed result is undefined'
-}
+import type { ExportType, ConvertOptions } from '~/typings/global';
 
 /**
  * Abstract base class for JSON to TypeScript interface converters.
  * Provides robust common functionality with enhanced error handling and validation.
  */
 export default abstract class ConverterBase {
-  private static readonly JSON_START_CHARS = new Set(['{', '[', '"', 't', 'f', 'n', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+  /**
+   * Protected constructor to enforce factory pattern usage.
+   */
+  protected constructor() {
+  }
 
   /**
    * Converts a JSON object into a TypeScript interface.
@@ -53,12 +47,12 @@ export default abstract class ConverterBase {
     options: ConvertOptions = {},
   ): string | null {
     // Validate interface name
-    if (!this.isValidIdentifier(interfaceName)) {
+    if (!ConverterUtils.checkIdentifier(interfaceName)) {
       throw new Error(`Invalid interface name: "${interfaceName}". Must be a valid TypeScript identifier.`);
     }
 
     // Parse JSON with enhanced error handling
-    const parseResult = this.parseJson(jsonData);
+    const parseResult = ConverterUtils.jsonParse(jsonData);
     if (parseResult.error) {
       console.error(`Conversion failed: ${parseResult.error}${parseResult.details ? ` - ${parseResult.details}` : ''}`);
       return null;
@@ -80,88 +74,6 @@ export default abstract class ConverterBase {
    */
   protected static createConverter(options: ConvertOptions): ConverterBase {
     throw new Error('createConverter must be implemented by concrete converter class');
-  }
-
-  /**
-   * Validates if a string is a valid TypeScript identifier.
-   */
-  private static isValidIdentifier(name: string): boolean {
-    return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name);
-  }
-
-  /**
-   * Parses JSON string or returns the input if it's already an object.
-   * Enhanced with comprehensive validation and detailed error reporting.
-   *
-   * @param json The JSON string or object to parse.
-   * @returns ParseResult containing parsed data or error information.
-   */
-  protected static parseJson(json: string | unknown | null): ParseResult {
-    // Handle null/undefined
-    if (json == null) {
-      return { data: null, error: JsonParseError.INVALID_INPUT, details: 'Input is null or undefined' };
-    }
-
-    // Return non-string values as-is
-    if (typeof json !== 'string') {
-      return { data: json };
-    }
-
-    // Handle empty strings
-    const trimmed = json.trim();
-    if (!trimmed) {
-      return { data: null, error: JsonParseError.INVALID_INPUT, details: 'Input is empty or whitespace' };
-    }
-
-    // Quick format validation
-    if (!this.JSON_START_CHARS.has(trimmed[0])) {
-      return {
-        data: null,
-        error: JsonParseError.INVALID_FORMAT,
-        details: `Input starts with '${trimmed[0]}', expected JSON value`,
-      };
-    }
-
-    try {
-      const parsed = JSON.parse(trimmed);
-
-      if (parsed === undefined) {
-        return { data: null, error: JsonParseError.UNDEFINED_RESULT };
-      }
-
-      return { data: parsed };
-    } catch (e: any) {
-      const position = e.message.match(/position (\d+)/)?.[1] || 'unknown';
-      const snippet = trimmed.length > 100 ? `${trimmed.substring(0, 97)}...` : trimmed;
-      const details = `at position ${position}: ${e.message}\nInput: ${snippet}`;
-
-      return {
-        data: null,
-        error: JsonParseError.PARSE_FAILED,
-        details,
-      };
-    }
-  }
-
-  /**
-   * Formats a property declaration string for TypeScript interfaces.
-   *
-   * @param property The original property name.
-   * @param type The TypeScript type for the property.
-   * @param options Configuration options for formatting. Optional.
-   * @returns A formatted TypeScript property declaration string.
-   */
-  protected formatPropertyValue(property: string, type: string, options: ConvertOptions = {}): string {
-    const name = ConverterUtils.suggestPropertyName(StringUtils.formatName(property, options?.propertyCase ?? 'original'))
-    const readonly = options?.readonlyProperties ? 'readonly ' : '';
-    const optional = options?.optionalProperties ? '?' : '';
-    return `${readonly}${name}${optional}: ${type}`;
-  }
-
-  /**
-   * Protected constructor to enforce factory pattern usage.
-   */
-  protected constructor() {
   }
 
   /**

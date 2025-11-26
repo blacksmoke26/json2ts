@@ -4,6 +4,7 @@
  * @see https://github.com/blacksmoke26
  */
 
+// base
 import ConverterBase from '~/base/ConverterBase';
 
 // utils
@@ -120,9 +121,10 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
    */
   protected convertJson(jsonData: unknown, interfaceName: string, exportType: ExportType = 'root'): string {
     const exports = exportType !== 'none' ? 'export ' : '';
+    const safeInterfaceName = ConverterUtils.toInterfaceName(interfaceName);
 
     if (typeof jsonData !== 'object' || jsonData === null) {
-      return exports + `interface ${interfaceName} {}`;
+      return exports + `interface ${safeInterfaceName} {}`;
     }
 
     // Reset the visited set for each conversion run
@@ -130,7 +132,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
 
     const interfaceBody = this.generateObjectBody(jsonData, 0).trim();
 
-    return exports + `interface ${interfaceName} ${interfaceBody}`.replace(/\[]$/, '');
+    return exports + `interface ${safeInterfaceName} ${interfaceBody}`.replace(/\[]$/, '');
   }
 
   /**
@@ -193,7 +195,7 @@ export default class JsonToFlattenedTsConverter extends ConverterBase {
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, indentLevel + 1);
-      body += `${nextIndent}${this.formatPropertyValue(key, type, this.options)};\n`;
+      body += `${nextIndent}${ConverterUtils.formatPropertyValue(key, type, this.options)};\n`;
     }
 
     // Remove object from visited set after processing

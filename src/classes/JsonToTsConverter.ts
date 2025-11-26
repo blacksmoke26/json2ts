@@ -4,7 +4,10 @@
  * @see https://github.com/blacksmoke26
  */
 
+// base
 import ConverterBase from '~/base/ConverterBase';
+
+// utils
 import ConverterUtils from '~/utils/ConverterUtils';
 
 // types
@@ -126,24 +129,25 @@ export default class JsonToTsConverter extends ConverterBase {
    */
   protected convertJson(jsonData: unknown, rootInterfaceName: string, exportType: ExportType = 'root'): string {
     const exports: string = exportType !== 'none' ? 'export ' : '';
+    const interfaceName = ConverterUtils.toInterfaceName(rootInterfaceName);
 
     if (typeof jsonData !== 'object' || jsonData === null) {
       if (this.options.strict) {
-        return `${exports}type ${rootInterfaceName} = null;`;
+        return `${exports}type ${interfaceName} = null;`;
       }
-      return `${exports}interface ${rootInterfaceName} {\n  [p: string]: unknown;\n}`;
+      return `${exports}interface ${interfaceName} {\n  [p: string]: unknown;\n}`;
     }
 
     this.interfaces.clear();
     this.visitedObjects = new WeakSet<object>();
 
-    this.generateInterface(jsonData as object, rootInterfaceName, exportType === 'all');
+    this.generateInterface(jsonData as object, interfaceName, exportType === 'all');
 
     // Reverse the order to ensure dependencies are declared before dependents
     const orderedInterfaces = Array.from(this.interfaces.entries()).reverse();
 
     return orderedInterfaces.map(([x, content]) => {
-      return (x === rootInterfaceName && exportType === 'root' ? exports : '') + content;
+      return (x === interfaceName && exportType === 'root' ? exports : '') + content;
     }).join('\n\n');
   }
 
@@ -175,7 +179,7 @@ export default class JsonToTsConverter extends ConverterBase {
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, this.capitalize(key), appendExport);
-      interfaceBody += `  ${this.formatPropertyValue(key, type, this.options)};\n`;
+      interfaceBody += `  ${ConverterUtils.formatPropertyValue(key, type, this.options)};\n`;
     }
 
     const fullInterface = `${appendExport ? 'export ' : ''}interface ${interfaceName} {\n${interfaceBody.trimEnd()}\n}`;
