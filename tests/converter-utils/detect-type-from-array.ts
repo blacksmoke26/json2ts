@@ -4,7 +4,7 @@
  * @see https://github.com/blacksmoke26
  */
 
-import ConverterUtils from '../src/utils/ConverterUtils';
+import ConverterUtils from '../../src/utils/ConverterUtils';
 
 
 
