@@ -175,7 +175,7 @@ export default class JsonToTsConverter extends ConverterBase {
     for (const key of keys) {
       const value = obj[key];
       const type = this.getType(value, this.capitalize(key), appendExport);
-      interfaceBody += `  ${this.toPropertyName(key, this.options?.propertyCase ?? 'original')}: ${type};\n`;
+      interfaceBody += `  ${this.formatPropertyValue(key, type, this.options)};\n`;
     }
 
     const fullInterface = `${appendExport ? 'export ' : ''}interface ${interfaceName} {\n${interfaceBody.trimEnd()}\n}`;
