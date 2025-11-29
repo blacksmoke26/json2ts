@@ -58,7 +58,7 @@ const argv = yargs(hideBin(process.argv))
     alias: 'pc',
   })
   .option('flat', {
-    description: 'Generate a single flattened interface instead of nested interfaces',
+    description: 'Generate a single flattened interface instead of multiple interfaces',
     type: 'boolean',
     alias: 'l',
   })
