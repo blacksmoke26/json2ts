@@ -150,7 +150,7 @@ json2ts -f input.json -o strict-types.ts -n Data --strict
 
 ```bash
 # Multiple options together
-json2ts -f input.json -o output.ts -n ApiResponse -e all --property-case c --strict
+json2ts -f input.json -o output.ts -n ApiResponse -e a --property-case c --strict
 
 # Flattened with property transformation
 json2ts -f data.json -o flat.ts -n FlatData --flat --property-case l
@@ -201,7 +201,7 @@ json2ts -f tsconfig.json -n TsConfig -o tsconfig-types.ts
 ```bash
 # MongoDB export
 mongoexport --collection users --out users.json
-json2ts -f users.json -n UserDoc -o user-types.ts --export all
+json2ts -f users.json -n UserDoc -o user-types.ts --export a
 
 # PostgreSQL query
 psql -c "SELECT row_to_json(t) FROM (SELECT * FROM users) t" | \
@@ -260,7 +260,7 @@ curl -s https://api.github.com/repos/torvalds/linux | \
 # Reddit API: Fetch subreddit posts
 curl -s -H "User-Agent: json2ts" \
   "https://www.reddit.com/r/typescript/top.json?limit=10" | \
-  json2ts -n RedditPost -o reddit-types.ts --export all
+  json2ts -n RedditPost -o reddit-types.ts --export a
 
 # GraphQL API query with curl
 curl -s -X POST https://api.spacex.land/graphql \
@@ -294,7 +294,7 @@ mongo myapp --eval "
 # Prisma schema introspection
 npx prisma introspect --print | \
   grep -o '"model"[^}]*}' | \
-  json2ts -n PrismaModel -o prisma-types.ts --export all
+  json2ts -n PrismaModel -o prisma-types.ts --export a
 ```
 
 #### Configuration management
@@ -336,7 +336,7 @@ jq -n '{
     email: "user\(.)@example.com",
     roles: ["user", (\. % 3 == 0 and "admin" or empty)]
   }]
-}' | json2ts -n MockUsers -o mock-types.ts --export all
+}' | json2ts -n MockUsers -o mock-types.ts --export a
 ```
 
 #### Advanced pipeline operations
@@ -378,7 +378,7 @@ istioctl proxy-config routes deployment/reviews.default -o json | \
 # OpenAPI schema conversion
 curl -s https://petstore.swagger.io/v2/swagger.json | \
   jq '.definitions' | \
-  json2ts -n PetStore -o api-types.ts --export all
+  json2ts -n PetStore -o api-types.ts --export a
 
 # Microservice contract generation
 for service in auth payment notification; do
