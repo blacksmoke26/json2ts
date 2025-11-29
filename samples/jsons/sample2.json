@@ -8,11 +8,39 @@
     "name": "John Doe",
     "phones": {
       "home": "800-123-4567",
-      "mobile": "877-123-1234"
+      "mobile": "877-123-1234",
+      "work": "555-123-4567",
+      "fax": "555-987-6543",
+      "pager": "888-123-4567",
+      "emergency": "911",
+      "international": "+1-800-555-0199",
+      "voip": "sip:john.doe@voip.example.com",
+      "satellite": "SAT-123-456",
+      "telex": "TELEX-789-012"
     },
+    "favoriteNumbers": [42, 3.14, -7, 0, 100],
+    "favoriteColors": ["red", "blue", "green", "yellow", "purple"],
+    "booleanFlags": [true, false, true, true, false],
+    "mixedValues": [1, "text", true, null],
+    "singleValueArray": ["only one item"],
+    "primitiveTypes": [1, "string", true],
+    "edgeCases": [null, "testing"],
     "email": [
       "jd@example.com",
-      "jd@example.org"
+      "jd@example.org",
+      "john.doe@workplace.com",
+      "j.doe@personal.mail",
+      "johnny_d@university.edu",
+      "jdoe@consulting.net",
+      "john.doe.sr@legacy.com",
+      "jd12345@secure.mail",
+      "john.doe@international.co.uk",
+      "jdoe@development.tech",
+      "john.doe@startup.io",
+      "jd@creative.studio",
+      "john.doe.research@university.edu",
+      "jdoe.volunteer@nonprofit.org",
+      "john.doe@freelance.net"
     ],
     "dateOfBirth": "1980-01-02T00:00:00.000Z",
     "registered": true,
@@ -20,12 +48,492 @@
       {
         "name": "Jane Doe",
         "phone": "888-555-1212",
-        "relationship": "spouse"
+        "relationship": "spouse",
+        "emails": ["jane.doe@home.com", "jane@work.org", "jdoe.spouse@family.net"],
+        "addresses": [
+          {
+            "type": "home",
+            "street": "123 Main St",
+            "city": "Springfield",
+            "state": "IL",
+            "zip": "62701",
+            "country": "USA",
+            "coordinates": {"lat": 39.7817, "lng": -89.6501}
+          },
+          {
+            "type": "work",
+            "street": "456 Business Ave",
+            "city": "Chicago",
+            "state": "IL",
+            "zip": "60601",
+            "country": "USA",
+            "coordinates": {"lat": 41.8781, "lng": -87.6298}
+          }
+        ],
+        "alternatePhones": {
+          "mobile": "777-555-1212",
+          "work": "312-555-1212",
+          "international": "+1-312-555-1212"
+        }
       },
       {
         "name": "Justin Doe",
         "phone": "877-123-1212",
-        "relationship": "parent"
+        "relationship": "parent",
+        "emails": ["justin.sr@retired.com", "jdoe.father@legacy.org"],
+        "addresses": [
+          {
+            "type": "home",
+            "street": "789 Oak Lane",
+            "city": "Peoria",
+            "state": "IL",
+            "zip": "61602",
+            "country": "USA",
+            "coordinates": {"lat": 40.6936, "lng": -89.5890}
+          }
+        ],
+        "medicalInfo": {
+          "bloodType": "O+",
+          "allergies": ["penicillin", "peanuts"],
+          "medications": ["lisinopril", "metformin"],
+          "conditions": ["hypertension", "type 2 diabetes"],
+          "emergencyNotes": "Requires insulin pump",
+          "insurance": {
+            "provider": "HealthCare Plus",
+            "policyNumber": "HCP-123456789",
+            "groupNumber": "GRP-987654321"
+          }
+        }
+      },
+      {
+        "name": "Emily Doe",
+        "phone": "555-234-5678",
+        "relationship": "sibling",
+        "emails": ["emily.doe@design.studio", "e.doe@creative.co"],
+        "socialMedia": {
+          "linkedin": "linkedin.com/in/emily-doe",
+          "twitter": "@emilydoe",
+          "instagram": "@emilydesigns",
+          "github": "github.com/emilydoe",
+          "portfolio": "emilydoe.design"
+        }
+      },
+      {
+        "name": "Robert Smith",
+        "phone": "222-345-6789",
+        "relationship": "friend",
+        "emails": ["bob.smith@tech.com"],
+        "company": {
+          "name": "Tech Innovations Inc.",
+          "position": "CTO",
+          "department": "Engineering",
+          "location": "San Francisco, CA",
+          "employeeId": "TECH-789012"
+        }
+      }
+    ],
+    "employment": {
+      "current": {
+        "company": "Global Solutions LLC",
+        "position": "Senior Software Engineer",
+        "department": "Product Development",
+        "startDate": "2015-03-15T00:00:00.000Z",
+        "salary": 125000,
+        "manager": {
+          "name": "Sarah Johnson",
+          "title": "Engineering Manager",
+          "email": "sarah.johnson@globalsolutions.com",
+          "phone": "415-555-9012"
+        },
+        "projects": [
+          {
+            "name": "Cloud Migration",
+            "status": "in-progress",
+            "technologies": ["AWS", "Docker", "Kubernetes"],
+            "teamSize": 8,
+            "deadline": "2024-06-30T00:00:00.000Z"
+          },
+          {
+            "name": "API Redesign",
+            "status": "completed",
+            "technologies": ["Node.js", "GraphQL", "PostgreSQL"],
+            "teamSize": 5,
+            "completedDate": "2023-12-15T00:00:00.000Z"
+          }
+        ]
+      },
+      "previous": [
+        {
+          "company": "StartUp Ventures",
+          "position": "Full Stack Developer",
+          "duration": "2012-2015",
+          "achievements": [
+            "Led development of MVP that secured Series A funding",
+            "Implemented real-time collaboration features",
+            "Reduced page load time by 60%"
+          ]
+        },
+        {
+          "company": "Digital Agency Pro",
+          "position": "Junior Developer",
+          "duration": "2010-2012",
+          "projectsCompleted": 25,
+          "clientsServed": 15
+        }
+      ]
+    },
+    "education": [
+      {
+        "institution": "University of Illinois at Urbana-Champaign",
+        "degree": "Bachelor of Science",
+        "major": "Computer Science",
+        "graduationYear": 2010,
+        "gpa": 3.8,
+        "honors": ["Magna Cum Laude", "Dean's List"],
+        "activities": ["ACM Chapter", "Coding Competition Winner"]
+      },
+      {
+        "institution": "Online Learning Platform",
+        "certifications": [
+          {
+            "name": "AWS Certified Solutions Architect",
+            "date": "2022-08-15T00:00:00.000Z",
+            "expiry": "2025-08-15T00:00:00.000Z"
+          },
+          {
+            "name": "Google Cloud Professional Developer",
+            "date": "2023-01-20T00:00:00.000Z",
+            "expiry": "2026-01-20T00:00:00.000Z"
+          }
+        ]
+      }
+    ],
+    "health": {
+      "vitals": {
+        "height": "5'11\"",
+        "weight": 175,
+        "bloodPressure": "120/80",
+        "heartRate": 72,
+        "temperature": 98.6
+      },
+      "appointments": [
+        {
+          "date": "2024-03-15T10:00:00.000Z",
+          "type": "Annual Checkup",
+          "doctor": "Dr. Michael Chen",
+          "clinic": "Springfield Medical Center"
+        },
+        {
+          "date": "2024-02-10T14:30:00.000Z",
+          "type": "Dental Cleaning",
+          "dentist": "Dr. Amanda Wilson",
+          "clinic": "Bright Smiles Dental"
+        }
+      ],
+      "medications": [
+        {
+          "name": "Vitamin D3",
+          "dosage": "1000 IU",
+          "frequency": "daily",
+          "prescribed": "2023-11-01T00:00:00.000Z"
+        },
+        {
+          "name": "Omega-3",
+          "dosage": "1200mg",
+          "frequency": "twice daily",
+          "prescribed": "2023-10-15T00:00:00.000Z"
+        }
+      ]
+    },
+    "financial": {
+      "bankAccounts": [
+        {
+          "type": "checking",
+          "bank": "First National Bank",
+          "accountNumber": "****1234",
+          "routingNumber": "****5678",
+          "balance": 15420.50
+        },
+        {
+          "type": "savings",
+          "bank": "First National Bank",
+          "accountNumber": "****5678",
+          "routingNumber": "****5678",
+          "balance": 45890.75
+        }
+      ],
+      "creditCards": [
+        {
+          "issuer": "Chase",
+          "type": "Sapphire Preferred",
+          "lastFour": "9012",
+          "limit": 15000,
+          "balance": 2340.15,
+          "dueDate": "2024-02-25T00:00:00.000Z"
+        },
+        {
+          "issuer": "American Express",
+          "type": "Gold Card",
+          "lastFour": "3456",
+          "limit": 10000,
+          "balance": 890.00,
+          "dueDate": "2024-02-20T00:00:00.000Z"
+        }
+      ],
+      "investments": {
+        "retirement": {
+          "401k": 125000,
+          "ira": 45000,
+          "rothIRA": 28000
+        },
+        "stocks": [
+          {"symbol": "AAPL", "shares": 50, "purchasePrice": 142.30, "currentPrice": 178.25},
+          {"symbol": "MSFT", "shares": 30, "purchasePrice": 245.60, "currentPrice": 378.85},
+          {"symbol": "GOOGL", "shares": 20, "purchasePrice": 2340.50, "currentPrice": 2856.40}
+        ],
+        "realEstate": {
+          "primaryResidence": {
+            "address": "123 Main St, Springfield, IL 62701",
+            "purchasePrice": 285000,
+            "currentValue": 425000,
+            "mortgage": 185000
+          }
+        }
+      }
+    },
+    "preferences": {
+      "notifications": {
+        "email": true,
+        "sms": false,
+        "push": true,
+        "marketing": false
+      },
+      "privacy": {
+        "shareData": false,
+        "analytics": true,
+        "cookies": "necessary",
+        "location": false
+      },
+      "theme": "dark",
+      "language": "en-US",
+      "timezone": "America/Chicago"
+    },
+    "devices": [
+      {
+        "type": "smartphone",
+        "brand": "Apple",
+        "model": "iPhone 15 Pro",
+        "os": "iOS 17.2",
+        "lastUsed": "2024-02-10T15:30:00.000Z",
+        "apps": ["WhatsApp", "LinkedIn", "GitHub", "Slack", "Zoom"]
+      },
+      {
+        "type": "laptop",
+        "brand": "Apple",
+        "model": "MacBook Pro 16\"",
+        "os": "macOS Sonoma 14.2",
+        "lastUsed": "2024-02-10T22:45:00.000Z",
+        "software": ["VS Code", "Docker", "Postman", "Chrome", "Terminal"]
+      },
+      {
+        "type": "tablet",
+        "brand": "Apple",
+        "model": "iPad Air",
+        "os": "iPadOS 17.2",
+        "lastUsed": "2024-02-09T19:00:00.000Z"
+      },
+      {
+        "type": "smartwatch",
+        "brand": "Apple",
+        "model": "Apple Watch Series 9",
+        "os": "watchOS 10.2",
+        "lastUsed": "2024-02-10T23:30:00.000Z"
+      }
+    ],
+    "subscriptions": [
+      {
+        "service": "Netflix",
+        "plan": "Premium",
+        "cost": 19.99,
+        "billingCycle": "monthly",
+        "nextPayment": "2024-02-15T00:00:00.000Z"
+      },
+      {
+        "service": "Spotify",
+        "plan": "Family",
+        "cost": 15.99,
+        "billingCycle": "monthly",
+        "nextPayment": "2024-02-18T00:00:00.000Z"
+      },
+      {
+        "service": "Amazon Prime",
+        "plan": "Annual",
+        "cost": 139.00,
+        "billingCycle": "yearly",
+        "nextPayment": "2024-12-15T00:00:00.000Z"
+      },
+      {
+        "service": "GitHub Pro",
+        "plan": "Monthly",
+        "cost": 4.00,
+        "billingCycle": "monthly",
+        "nextPayment": "2024-02-25T00:00:00.000Z"
+      }
+    ],
+    "travel": {
+      "passport": {
+        "number": "C12345678",
+        "issueDate": "2020-05-10T00:00:00.000Z",
+        "expiryDate": "2030-05-10T00:00:00.000Z",
+        "country": "USA"
+      },
+      "frequentFlyer": [
+        {"airline": "American", "number": "AAdvantage 789012345", "miles": 45600},
+        {"airline": "United", "number": "MileagePlus 234567890", "miles": 32100},
+        {"airline": "Delta", "number": "SkyMiles 567890123", "miles": 28900}
+      ],
+      "recentTrips": [
+        {
+          "destination": "Paris, France",
+          "dates": "2023-09-15T00:00:00.000Z to 2023-09-25T00:00:00.000Z",
+          "purpose": "Vacation",
+          "hotel": "Hotel Le Bristol",
+          "flights": ["AA 45", "AF 1078"]
+        },
+        {
+          "destination": "Tokyo, Japan",
+          "dates": "2023-06-01T00:00:00.000Z to 2023-06-10T00:00:00.000Z",
+          "purpose": "Business",
+          "hotel": "Imperial Hotel Tokyo",
+          "flights": ["UA 837", "NH 205"]
+        }
+      ]
+    },
+    "socialConnections": {
+      "friends": 342,
+      "followers": 1280,
+      "following": 456,
+      "connections": [
+        {
+          "platform": "LinkedIn",
+          "connections": 567,
+          "profileViews": 1234,
+          "postImpressions": 5678
+        },
+        {
+          "platform": "Twitter",
+          "followers": 890,
+          "following": 234,
+          "tweets": 456
+        },
+        {
+          "platform": "Instagram",
+          "followers": 2340,
+          "following": 345,
+          "posts": 178
+        }
+      ]
+    },
+    "skills": [
+      {
+        "category": "Programming Languages",
+        "items": [
+          {"name": "JavaScript", "proficiency": "Expert", "years": 8},
+          {"name": "TypeScript", "proficiency": "Advanced", "years": 4},
+          {"name": "Python", "proficiency": "Advanced", "years": 5},
+          {"name": "Java", "proficiency": "Intermediate", "years": 3},
+          {"name": "Go", "proficiency": "Intermediate", "years": 2}
+        ]
+      },
+      {
+        "category": "Web Technologies",
+        "items": [
+          {"name": "React", "proficiency": "Expert", "years": 6},
+          {"name": "Node.js", "proficiency": "Advanced", "years": 5},
+          {"name": "Vue.js", "proficiency": "Intermediate", "years": 2},
+          {"name": "Angular", "proficiency": "Intermediate", "years": 3}
+        ]
+      },
+      {
+        "category": "Cloud & DevOps",
+        "items": [
+          {"name": "AWS", "proficiency": "Advanced", "years": 4},
+          {"name": "Docker", "proficiency": "Advanced", "years": 4},
+          {"name": "Kubernetes", "proficiency": "Intermediate", "years": 2},
+          {"name": "Terraform", "proficiency": "Intermediate", "years": 2}
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "name": "Personal Portfolio",
+        "description": "Interactive portfolio website showcasing projects and skills",
+        "technologies": ["React", "TypeScript", "Tailwind CSS"],
+        "status": "completed",
+        "url": "https://johndoe.dev",
+        "github": "https://github.com/johndoe/portfolio"
+      },
+      {
+        "name": "Task Management App",
+        "description": "Full-stack task management application with real-time collaboration",
+        "technologies": ["Node.js", "Express", "MongoDB", "Socket.io"],
+        "status": "in-development",
+        "github": "https://github.com/johndoe/task-manager"
+      },
+      {
+        "name": "Open Source Contributions",
+        "description": "Contributions to various open source projects",
+        "repositories": [
+          {"name": "react-router", "commits": 15},
+          {"name": "eslint-config-airbnb", "commits": 8},
+          {"name": "lodash", "commits": 3}
+        ]
+      }
+    ],
+    "achievements": [
+      {
+        "title": "Employee of the Year",
+        "organization": "Global Solutions LLC",
+        "year": 2022,
+        "description": "Recognized for exceptional technical leadership and innovation"
+      },
+      {
+        "title": "Hackathon Winner",
+        "event": "TechCrunch Disrupt",
+        "year": 2021,
+        "prize": "$50,000",
+        "project": "AI-powered healthcare scheduling system"
+      },
+      {
+        "title": "Best Speaker Award",
+        "event": "Tech Conference 2023",
+        "topic": "Microservices Architecture at Scale"
+      }
+    ],
+    "hobbies": [
+      {
+        "category": "Sports",
+        "activities": [
+          {"name": "Tennis", "frequency": "weekly", "level": "intermediate"},
+          {"name": "Swimming", "frequency": "twice weekly", "level": "advanced"},
+          {"name": "Cycling", "frequency": "monthly", "level": "beginner"}
+        ]
+      },
+      {
+        "category": "Creative",
+        "activities": [
+          {"name": "Photography", "equipment": ["Canon EOS R5", "Sony A7R IV"]},
+          {"name": "Guitar", "years": 10, "styles": ["rock", "jazz", "blues"]},
+          {"name": "Writing", "type": "tech blog", "platform": "Medium"}
+        ]
+      },
+      {
+        "category": "Gaming",
+        "activities": [
+          {"name": "Chess", "rating": 1850, "platform": "Chess.com"},
+          {"name": "Video Games", "genres": ["RPG", "Strategy", "Puzzle"]},
+          {"name": "Board Games", "collection": ["Catan", "Ticket to Ride", "Pandemic"]}
+        ]
       }
     ]
   }
