@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.0.5 (2025-XX-XX)
+## Version 0.0.5 (2025-11-29)
 - Fixed broken typescript typings when using Programming API
 - Fixed typos in documentation
 
