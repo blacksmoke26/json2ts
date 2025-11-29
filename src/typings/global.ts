@@ -4,7 +4,7 @@
  * @see https://github.com/blacksmoke26
  */
 
-import { JsonParseError } from '~/base/ConverterBase';
+import { JsonParseError } from '~/utils/ConverterUtils';
 
 /**
  * Supported case naming conventions for transforming strings.

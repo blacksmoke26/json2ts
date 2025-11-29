@@ -23,7 +23,7 @@ const argv = yargs(hideBin(process.argv))
   .parserConfiguration({
     'parse-numbers': false,
   })
-  .version('0.0.4')
+  .version('0.0.5')
   .usage('Usage: json2ts -f input.json -o output.ts')
   .option('file', {
     description: 'Path to the JSON file to be converted to TypeScript interfaces',
@@ -58,7 +58,7 @@ const argv = yargs(hideBin(process.argv))
     alias: 'pc',
   })
   .option('flat', {
-    description: 'Generate a single flattened interface instead of nested interfaces',
+    description: 'Generate a single flattened interface instead of multiple interfaces',
     type: 'boolean',
     alias: 'l',
   })

@@ -1,6 +1,10 @@
 # Changelog
 
-### Version 0.0.4 (2025-11-29)
+## Version 0.0.5 (2025-XX-XX)
+- Fixed broken typescript typings when using Programming API
+- Fixed typos in documentation
+
+## Version 0.0.4 (2025-11-29)
 
 - Added readonly properties support with `readonlyProperties` option and `--readonly` flag
 - Added optional properties support with `optionalProperties` option and `--optional` flag
