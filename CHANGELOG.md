@@ -1,6 +1,6 @@
 # Changelog
 
-### Version 0.0.4 (2025-XX-XX)
+### Version 0.0.4 (2025-11-29)
 
 - Added readonly properties support with `readonlyProperties` option and `--readonly` flag
 - Added optional properties support with `optionalProperties` option and `--optional` flag
